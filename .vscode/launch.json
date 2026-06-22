@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "📱 Flutter (Debug - Android Físico)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "flutterMode": "debug",
+            "deviceId": "ZY22KSF35F",
+            "console": "debugConsole"
+        },
+        {
+            "name": "NewMyCarApp",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "iPhone 17",
+            "args": [
+               "--hot"
+            ]
+        },
+        {
+            "name": "NewMyCarApp (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+
+        },
+        {
+            "name": "NewMyCarApp (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
