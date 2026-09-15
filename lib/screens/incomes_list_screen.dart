@@ -6,10 +6,30 @@ import '../providers/car_provider.dart';
 import '../services/database_helper.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/income_modal_helper.dart';
+import '../utils/vehicle_image_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
 
 class IncomesListScreen extends StatelessWidget {
   const IncomesListScreen({super.key});
+
+  Widget _buildCarThumbnail(String? imageBase64) {
+    const fallback = Icon(
+      Icons.directions_car,
+      color: Colors.white,
+      size: 28,
+    );
+    final bytes = VehicleImage.decode(imageBase64);
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
+        width: 64,
+        height: 64,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => fallback,
+      );
+    }
+    return fallback;
+  }
 
   Future<double> _getTotalIncomeForCar(String? carId) async {
     if (carId == null || carId.isEmpty) return 0.0;
@@ -62,8 +82,12 @@ class IncomesListScreen extends StatelessWidget {
       ),
       body: Consumer<CarProvider>(
         builder: (context, carProvider, child) {
-          // Cargar vehículos si no están cargados
-          if (!carProvider.isLoading && carProvider.cars.isEmpty) {
+          // Cargar vehículos si no están cargados. No reintentar automáticamente
+          // tras un error: eso causaría un loop de reintentos en cada rebuild;
+          // el usuario reintenta explícitamente con el botón "Reintentar".
+          if (!carProvider.isLoading &&
+              carProvider.cars.isEmpty &&
+              carProvider.errorMessage == null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               carProvider.loadCars();
             });
@@ -71,6 +95,39 @@ class IncomesListScreen extends StatelessWidget {
 
           if (carProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (carProvider.errorMessage != null && carProvider.cars.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(40.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 72,
+                    color: MyCarColors.error,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    carProvider.errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: MyCarColors.textSecondary,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: () => carProvider.loadCars(),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: MyCarColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
           }
 
           if (carProvider.cars.isEmpty) {
@@ -191,11 +248,8 @@ class IncomesListScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                child: const Icon(
-                                  Icons.directions_car,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: _buildCarThumbnail(car.imageBase64),
                               ),
                               const SizedBox(width: 16),
                               Expanded(

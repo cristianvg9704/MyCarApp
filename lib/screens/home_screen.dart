@@ -5,6 +5,7 @@ import '../providers/car_provider.dart';
 import '../providers/user_provider.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/vehicle_image_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -150,6 +151,38 @@ class HomeScreen extends StatelessWidget {
                   );
                 }
 
+                if (carProvider.errorMessage != null && carProvider.cars.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 72,
+                          color: MyCarColors.error,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          carProvider.errorMessage!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: MyCarColors.textSecondary,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton(
+                          onPressed: () => carProvider.loadCars(),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: MyCarColors.primary,
+                          ),
+                          child: const Text('Reintentar'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 if (carProvider.cars.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.all(40.0),
@@ -282,6 +315,25 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildCarThumbnail(Car car) {
+    const fallback = Icon(
+      Icons.directions_car,
+      color: Colors.white,
+      size: 28,
+    );
+    final bytes = VehicleImage.decode(car.imageBase64);
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
+        width: 64,
+        height: 64,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => fallback,
+      );
+    }
+    return fallback;
+  }
+
   Widget _buildCarCard(BuildContext context, Car car, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -324,11 +376,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.directions_car,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _buildCarThumbnail(car),
                 ),
                 const SizedBox(width: 16),
                 // Información del vehículo

@@ -6,18 +6,22 @@ class CarProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   List<Car> _cars = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   List<Car> get cars => _cars;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   Future<void> loadCars() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
       _cars = await _dbHelper.getAllCars();
     } catch (e) {
       debugPrint('Error loading cars: $e');
+      _errorMessage = 'No se pudieron cargar tus vehículos. Intenta de nuevo.';
     } finally {
       _isLoading = false;
       notifyListeners();

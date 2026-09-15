@@ -31,6 +31,35 @@ class VehiclesListScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+          if (carProvider.errorMessage != null && carProvider.cars.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 80,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      carProvider.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () => carProvider.loadCars(),
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           if (carProvider.cars.isEmpty) {
             return Center(
               child: Column(
