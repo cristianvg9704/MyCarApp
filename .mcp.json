@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "graphify": {
+      "command": "/Users/qrvey/.local/share/uv/tools/graphifyy/bin/python",
+      "args": ["-m", "graphify.serve", "/Users/qrvey/NewMyCarApp/graphify-out/graph.json"]
+    }
+  }
+}

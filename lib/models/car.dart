@@ -10,6 +10,7 @@ class Car {
   final double? purchasePrice;
   final String? notes;
   final String? imagePath;
+  final String? imageBase64;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -25,6 +26,7 @@ class Car {
     this.purchasePrice,
     this.notes,
     this.imagePath,
+    this.imageBase64,
     this.createdAt,
     this.updatedAt,
   });
@@ -42,6 +44,7 @@ class Car {
       'purchase_price': purchasePrice,
       'notes': notes,
       'image_path': imagePath,
+      'image_base64': imageBase64,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -64,6 +67,7 @@ class Car {
           : null,
       notes: map['notes'] as String?,
       imagePath: map['image_path'] as String?,
+      imageBase64: map['image_base64'] as String?,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
           : null,

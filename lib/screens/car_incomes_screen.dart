@@ -85,11 +85,14 @@ class CarIncomesScreen extends StatelessWidget {
           }
 
           if (incomeProvider.incomes.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(40.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(40.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                   Container(
                     padding: const EdgeInsets.all(40),
                     decoration: BoxDecoration(
@@ -146,7 +149,8 @@ class CarIncomesScreen extends StatelessWidget {
                       elevation: 0,
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             );
           }

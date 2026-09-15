@@ -6,6 +6,7 @@ import 'dart:io';
 import '../providers/car_provider.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/vehicle_image_helper.dart';
 
 class EditVehicleScreen extends StatefulWidget {
   final Car car;
@@ -71,7 +72,12 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(source: source);
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1280,
+        maxHeight: 1280,
+        imageQuality: 70,
+      );
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
@@ -120,6 +126,10 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
 
   Future<void> _updateVehicle() async {
     if (_formKey.currentState!.validate()) {
+      final String? imageBase64 = _selectedImage != null
+          ? await VehicleImage.encodeFile(_selectedImage!.path)
+          : widget.car.imageBase64;
+
       final updatedCar = Car(
         id: widget.car.id,
         userId: widget.car.userId,
@@ -137,7 +147,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
-        imagePath: widget.car.imagePath,
+        imageBase64: imageBase64,
       );
 
       try {
@@ -160,6 +170,45 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
         }
       }
     }
+  }
+
+  Widget _buildExistingCarImage() {
+    final bytes = VehicleImage.decode(widget.car.imageBase64);
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildPlaceholderImage();
+        },
+      );
+    }
+    return _buildPlaceholderImage();
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Image.asset(
+      'assets/images/car1 test.jpeg',
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: MyCarColors.primaryGradient,
+          ),
+          child: const Icon(
+            Icons.directions_car,
+            color: Colors.white,
+            size: 80,
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -219,26 +268,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                           borderRadius: BorderRadius.circular(16),
                           child: Stack(
                             children: [
-                              Image.asset(
-                                'assets/images/car1 test.jpeg',
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    decoration: BoxDecoration(
-                                      gradient: MyCarColors.primaryGradient,
-                                    ),
-                                    child: const Icon(
-                                      Icons.directions_car,
-                                      color: Colors.white,
-                                      size: 80,
-                                    ),
-                                  );
-                                },
-                              ),
+                              _buildExistingCarImage(),
                               Positioned(
                                 top: 8,
                                 right: 8,

@@ -61,17 +61,30 @@ class AlertProvider extends ChangeNotifier {
     return filtered;
   }
 
-  Future<void> loadAlerts() async {
+  Future<void> loadAlerts({bool syncNotifications = false}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       _alerts = await _dbHelper.getAllAlerts();
+      if (syncNotifications) {
+        await syncPendingNotifications();
+      }
     } catch (e) {
       debugPrint('Error loading alerts: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Reprograma notificaciones locales para alertas pendientes (p. ej. al abrir la app)
+  Future<void> syncPendingNotifications() async {
+    try {
+      final pending = _alerts.where((alert) => !alert.isCompleted).toList();
+      await NotificationService.instance.scheduleAllPendingAlerts(pending);
+    } catch (e) {
+      debugPrint('Error sincronizando notificaciones pendientes: $e');
     }
   }
 

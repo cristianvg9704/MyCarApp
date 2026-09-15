@@ -1,6 +1,9 @@
 import '../models/car.dart';
 import '../models/income.dart';
 import '../models/alert.dart';
+import '../models/mileage_reading.dart';
+import '../models/maintenance_log.dart';
+import '../models/trip_log.dart';
 import '../config/supabase_config.dart';
 
 class DatabaseHelper {
@@ -430,6 +433,111 @@ class DatabaseHelper {
           'updated_at': now.toIso8601String(),
         })
         .eq('id', id);
+  }
+
+  // ============================================
+  // MÉTODOS PARA KILOMETRAJE
+  // ============================================
+
+  Future<String> insertMileageReading(MileageReading reading) async {
+    final userId = _requireAuth();
+
+    final data = reading.toMap();
+    data['user_id'] = userId;
+
+    final response = await SupabaseConfig.client
+        .from('mileage_readings')
+        .insert(data)
+        .select('id')
+        .single();
+
+    return response['id'] as String;
+  }
+
+  Future<List<MileageReading>> getMileageReadingsByCar(String carId) async {
+    _requireAuth();
+
+    final response = await SupabaseConfig.client
+        .from('mileage_readings')
+        .select()
+        .eq('car_id', carId)
+        .order('reading_date', ascending: false);
+
+    return response
+        .map<MileageReading>(
+          (map) => MileageReading.fromMap(Map<String, dynamic>.from(map)),
+        )
+        .toList();
+  }
+
+  Future<void> deleteMileageReading(String id) async {
+    _requireAuth();
+
+    await SupabaseConfig.client.from('mileage_readings').delete().eq('id', id);
+  }
+
+  Future<String> insertMaintenanceLog(MaintenanceLog log) async {
+    final userId = _requireAuth();
+
+    final data = log.toMap();
+    data['user_id'] = userId;
+
+    final response = await SupabaseConfig.client
+        .from('maintenance_logs')
+        .insert(data)
+        .select('id')
+        .single();
+
+    return response['id'] as String;
+  }
+
+  Future<List<MaintenanceLog>> getMaintenanceLogsByCar(String carId) async {
+    _requireAuth();
+
+    final response = await SupabaseConfig.client
+        .from('maintenance_logs')
+        .select()
+        .eq('car_id', carId)
+        .order('service_date', ascending: false);
+
+    return response
+        .map<MaintenanceLog>(
+          (map) => MaintenanceLog.fromMap(Map<String, dynamic>.from(map)),
+        )
+        .toList();
+  }
+
+  // ============================================
+  // MÉTODOS PARA VIAJES GPS
+  // ============================================
+
+  Future<String> insertTripLog(TripLog trip) async {
+    final userId = _requireAuth();
+
+    final data = trip.toMap();
+    data['user_id'] = userId;
+
+    final response = await SupabaseConfig.client
+        .from('trip_logs')
+        .insert(data)
+        .select('id')
+        .single();
+
+    return response['id'] as String;
+  }
+
+  Future<List<TripLog>> getTripLogsByCar(String carId) async {
+    _requireAuth();
+
+    final response = await SupabaseConfig.client
+        .from('trip_logs')
+        .select()
+        .eq('car_id', carId)
+        .order('started_at', ascending: false);
+
+    return response
+        .map<TripLog>((map) => TripLog.fromMap(Map<String, dynamic>.from(map)))
+        .toList();
   }
 
   // ============================================

@@ -44,8 +44,8 @@ class Alert {
       'car_id': carId,
       'title': title,
       'description': description,
-      // Normalizar alertDate para guardar solo fecha (sin hora) y evitar problemas de zona horaria
-      'alert_date': DateTime(alertDate.year, alertDate.month, alertDate.day).toIso8601String(),
+      // Guardar solo la fecha (yyyy-MM-dd) para evitar desfases por zona horaria
+      'alert_date': _formatAlertDate(alertDate),
       'is_recurring': isRecurring,
       'recurrence_type': recurrenceType,
       'recurrence_value': recurrenceValue,
@@ -67,11 +67,7 @@ class Alert {
       carId: map['car_id'] as String,
       title: map['title'] as String,
       description: map['description'] as String?,
-      alertDate: () {
-        final parsedDate = DateTime.parse(map['alert_date'] as String);
-        // Normalizar la fecha para que solo tenga fecha (sin hora) para evitar problemas de zona horaria
-        return DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
-      }(),
+      alertDate: _parseAlertDate(map['alert_date'] as String),
       isRecurring: map['is_recurring'] as bool? ?? false,
       recurrenceType: map['recurrence_type'] as String?,
       recurrenceValue: map['recurrence_value'] as int?,
@@ -90,6 +86,28 @@ class Alert {
           ? DateTime.parse(map['updated_at'] as String)
           : null,
     );
+  }
+
+  static String _formatAlertDate(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    return '${normalized.year.toString().padLeft(4, '0')}-'
+        '${normalized.month.toString().padLeft(2, '0')}-'
+        '${normalized.day.toString().padLeft(2, '0')}';
+  }
+
+  static DateTime _parseAlertDate(String value) {
+    final dateOnly = value.length >= 10 ? value.substring(0, 10) : value;
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(dateOnly)) {
+      final parts = dateOnly.split('-');
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    }
+
+    final parsed = DateTime.parse(value).toLocal();
+    return DateTime(parsed.year, parsed.month, parsed.day);
   }
 
   /// Calcula la próxima fecha de recurrencia basada en el tipo y valor

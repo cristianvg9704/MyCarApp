@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +29,8 @@ import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/alert_provider.dart';
 import 'providers/subscription_provider.dart';
+import 'providers/mileage_provider.dart';
+import 'providers/trip_provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/income_modal_helper.dart';
 import 'services/database_helper.dart';
@@ -38,6 +42,12 @@ import 'config/app_config.dart';
 void main() async {
   // Asegurar que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Capturar errores async no controlados (evita cierre silencioso)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    _logError('PLATFORM_ERROR', error, stack);
+    return true;
+  };
 
   // Inicializar locales para español
   await initializeDateFormatting('es_ES', null);
@@ -170,6 +180,8 @@ class MyCarApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => IncomeProvider()),
         ChangeNotifierProvider(create: (_) => AlertProvider()),
         ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
+        ChangeNotifierProvider(create: (_) => MileageProvider()),
+        ChangeNotifierProvider(create: (_) => TripProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..listenToAuthChanges()),
         ChangeNotifierProvider(create: (_) => UserProvider()..loadUser()),
       ],
@@ -374,6 +386,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         await Future.delayed(const Duration(milliseconds: 500));
         await carProvider.loadCars();
       }
+
+      if (!mounted) return;
+
+      try {
+        await Provider.of<TripProvider>(context, listen: false).initialize();
+      } catch (e) {
+        debugPrint('Error inicializando viajes GPS: $e');
+      }
+
+      if (!mounted) return;
+      final alertProvider = Provider.of<AlertProvider>(context, listen: false);
+      await alertProvider.loadAlerts(syncNotifications: true);
     });
   }
 

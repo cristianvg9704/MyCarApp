@@ -6,6 +6,7 @@ import 'dart:io';
 import '../providers/car_provider.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/vehicle_image_helper.dart';
 import '../config/supabase_config.dart';
 
 class AddVehicleScreen extends StatefulWidget {
@@ -25,9 +26,32 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _plateController = TextEditingController();
   final _colorController = TextEditingController();
   final _notesController = TextEditingController();
+  final _notesFocusNode = FocusNode();
   DateTime? _purchaseDate;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _notesFocusNode.addListener(_scrollNotesFieldIntoView);
+  }
+
+  void _scrollNotesFieldIntoView() {
+    if (!_notesFocusNode.hasFocus) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notesContext = _notesFocusNode.context;
+      if (notesContext != null && mounted) {
+        Scrollable.ensureVisible(
+          notesContext,
+          alignment: 0.35,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -37,6 +61,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     _plateController.dispose();
     _colorController.dispose();
     _notesController.dispose();
+    _notesFocusNode.removeListener(_scrollNotesFieldIntoView);
+    _notesFocusNode.dispose();
     super.dispose();
   }
 
@@ -56,7 +82,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(source: source);
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1280,
+        maxHeight: 1280,
+        imageQuality: 70,
+      );
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
@@ -116,6 +147,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         return;
       }
 
+      final String? imageBase64 =
+          await VehicleImage.encodeFile(_selectedImage?.path);
+
       final car = Car(
         userId: currentUser.id,
         brand: _brandController.text.trim(),
@@ -132,6 +166,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
+        imageBase64: imageBase64,
       );
 
       try {
@@ -156,11 +191,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint('AddVehicleScreen: build llamado, inModal: ${widget.inModal}');
-    final Widget formContent = Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-          padding: EdgeInsets.zero,
-          child: Column(
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    final Widget formFields = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Selector de foto
@@ -540,6 +573,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _notesController,
+                        focusNode: _notesFocusNode,
                         decoration: InputDecoration(
                           labelText: 'Notas',
                           hintText: 'Información adicional...',
@@ -608,9 +642,19 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
               const SizedBox(height: 16),
             ],
-          ),
-        ),
-      );
+          );
+
+    final Widget formContent = Form(
+      key: _formKey,
+      child: widget.inModal
+          ? formFields
+          : SingleChildScrollView(
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.only(bottom: keyboardInset + 16),
+              child: formFields,
+            ),
+    );
 
     if (widget.inModal) {
       return formContent;

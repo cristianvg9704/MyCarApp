@@ -8,7 +8,9 @@ import '../models/income.dart';
 import '../services/database_helper.dart';
 import '../providers/car_provider.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/vehicle_image_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
+import '../widgets/car_mileage_tab.dart';
 
 class CarDetailScreen extends StatefulWidget {
   final String carId;
@@ -24,13 +26,52 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   bool _isLoading = true;
   List<Income> _incomes = [];
   bool _isLoadingIncomes = false;
-  String _activeView = 'ingresos'; // 'ingresos' o 'graficos'
+  String _activeView = 'ingresos'; // 'ingresos', 'graficos' o 'kilometraje'
   String _selectedPeriod = 'all'; // '7', '30', 'all'
 
   @override
   void initState() {
     super.initState();
     _loadCar();
+  }
+
+  Widget _buildCarImage() {
+    final bytes = VehicleImage.decode(_car?.imageBase64);
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
+        width: double.infinity,
+        height: 240,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildCarPlaceholderImage();
+        },
+      );
+    }
+    return _buildCarPlaceholderImage();
+  }
+
+  Widget _buildCarPlaceholderImage() {
+    return Image.asset(
+      'assets/images/car1 test.jpeg',
+      width: double.infinity,
+      height: 240,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: double.infinity,
+          height: 240,
+          decoration: BoxDecoration(
+            gradient: MyCarColors.primaryGradient,
+          ),
+          child: const Icon(
+            Icons.directions_car,
+            color: Colors.white,
+            size: 80,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _loadCar() async {
@@ -373,26 +414,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'assets/images/car1 test.jpeg',
-                    width: double.infinity,
-                    height: 240,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 240,
-                        decoration: BoxDecoration(
-                          gradient: MyCarColors.primaryGradient,
-                        ),
-                        child: const Icon(
-                          Icons.directions_car,
-                          color: Colors.white,
-                          size: 80,
-                        ),
-                      );
-                    },
-                  ),
+                  child: _buildCarImage(),
                 ),
               ),
             ),
@@ -475,11 +497,13 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                 ),
                 child: Column(
                   children: [
-                    // Botones de Ingresos y Gráficos
+                    // Botones de Ingresos, Gráficos y Kilometraje
                     Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
                           FilledButton(
                             onPressed: () {
                               setState(() {
@@ -551,13 +575,56 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          FilledButton(
+                            onPressed: () {
+                              setState(() {
+                                _activeView = 'kilometraje';
+                              });
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: _activeView == 'kilometraje'
+                                  ? MyCarColors.secondary
+                                  : Colors.transparent,
+                              foregroundColor: _activeView == 'kilometraje'
+                                  ? Colors.white
+                                  : MyCarColors.textSecondary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: _activeView == 'kilometraje'
+                                    ? BorderSide.none
+                                    : BorderSide(
+                                        color: MyCarColors.border,
+                                        width: 1.5,
+                                      ),
+                              ),
+                            ),
+                            child: const Text(
+                              'Kilometraje',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ],
+                        ),
                       ),
                     ),
                     // Contenido condicional según vista activa
-                    _activeView == 'ingresos'
-                        ? _buildIncomesTab()
-                        : _buildChartsTab(),
+                    if (_activeView == 'ingresos')
+                      _buildIncomesTab()
+                    else if (_activeView == 'graficos')
+                      _buildChartsTab()
+                    else
+                      CarMileageTab(
+                        carId: widget.carId,
+                        purchaseDate: _car?.purchaseDate,
+                      ),
                   ],
                 ),
               ),
@@ -910,18 +977,20 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
             // Gráfico con scroll horizontal
             SizedBox(
               height: 320,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: groupedData.length > 7 
-                      ? (groupedData.length * 50.0) 
-                      : double.infinity,
-                  height: 300,
-                  child: BarChart(
-                    _buildBarChartData(groupedData),
-                  ),
-                ),
-              ),
+              child: groupedData.length > 7
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: groupedData.length * 50.0,
+                        height: 300,
+                        child: BarChart(
+                          _buildBarChartData(groupedData),
+                        ),
+                      ),
+                    )
+                  : BarChart(
+                      _buildBarChartData(groupedData),
+                    ),
             ),
           ],
         ],
@@ -1015,6 +1084,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     }
 
     final maxY = groupedData.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
+    final yInterval = maxY / 5;
 
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
@@ -1071,6 +1141,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
+            interval: yInterval,
             getTitlesWidget: (value, meta) {
               if (value >= 0) {
                 return Text(
@@ -1104,7 +1175,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        horizontalInterval: maxY / 5,
+        horizontalInterval: yInterval,
         getDrawingHorizontalLine: (value) {
           return FlLine(
             color: MyCarColors.border.withValues(alpha: 0.3),

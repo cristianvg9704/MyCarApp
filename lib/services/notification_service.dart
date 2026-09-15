@@ -209,10 +209,53 @@ class NotificationService {
     debugPrint('✅ Notificación de prueba mostrada');
   }
 
+  /// Genera un ID positivo y estable para notificaciones locales
+  int _notificationIdFor(String? alertId, int index) {
+    if (alertId == null) {
+      return DateTime.now().millisecondsSinceEpoch.remainder(1000000) + index;
+    }
+    return (alertId.hashCode & 0x7FFFFFFF) + index;
+  }
+
+  tz.TZDateTime _scheduledDateTime(DateTime date, int hour, int minute) {
+    return tz.TZDateTime(
+      tz.local,
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+    );
+  }
+
+  bool _isNotificationTimeInFuture(DateTime date, int hour, int minute) {
+    final scheduled = _scheduledDateTime(date, hour, minute);
+    final now = tz.TZDateTime.now(tz.local);
+    return scheduled.isAfter(now);
+  }
+
   /// Programa una notificación para una alerta
   Future<void> scheduleAlertNotification(Alert alert) async {
     if (!_initialized) {
       await initialize();
+    }
+
+    if (alert.isCompleted) {
+      debugPrint('Alerta completada, no se programa notificación');
+      return;
+    }
+
+    if (alert.id != null) {
+      await cancelNotification(alert);
+    }
+
+    final hasPermission = await checkPermissions();
+    if (!hasPermission) {
+      final granted = await requestPermissions();
+      if (!granted) {
+        debugPrint('Permisos de notificación denegados, no se puede programar');
+        return;
+      }
     }
 
     debugPrint('=== Programando notificación para alerta: ${alert.id} ===');
@@ -222,12 +265,6 @@ class NotificationService {
     debugPrint('Tipo recurrencia: ${alert.recurrenceType}');
     debugPrint('Frecuencia: ${alert.recurrenceCount}');
     debugPrint('Modo prueba: $_testMode');
-
-    // No programar notificaciones para alertas completadas o con fechas pasadas
-    if (alert.isCompleted) {
-      debugPrint('Alerta completada, no se programa notificación');
-      return;
-    }
 
     final now = DateTime.now();
     final alertDate = alert.alertDate;
@@ -475,8 +512,7 @@ class NotificationService {
     final body = alert.description ?? 'Recordatorio de mantenimiento';
 
     // Base ID para las notificaciones
-    final baseNotificationId =
-        alert.id?.hashCode ?? DateTime.now().millisecondsSinceEpoch;
+    final baseNotificationId = _notificationIdFor(alert.id, 0);
 
     // Programar notificaciones para cada fecha (incluyendo recordatorios anticipados)
     // CORRECCIÓN: Usar allDates en lugar de scheduledDates para incluir "días antes"
@@ -523,56 +559,19 @@ class NotificationService {
           debugPrint('  Hora local programada: ${scheduledDate.toString()}');
         } else {
           debugPrint('  [DEBUG] Entró en modo NORMAL');
-          // Modo normal: programar para la hora especificada en notificationHour:notificationMinute
-          // CORRECCIÓN: Usar notificationHour y notificationMinute en lugar de siempre 00:00
-          debugPrint(
-            '  [DEBUG] Creando DateTime con: año=${date.year}, mes=${date.month}, día=${date.day}, hora=$notificationHour, minuto=$notificationMinute',
-          );
-          DateTime scheduledDateTime = DateTime(
-            date.year,
-            date.month,
-            date.day,
+          scheduledDate = _scheduledDateTime(
+            date,
             notificationHour,
             notificationMinute,
           );
-          debugPrint('  [DEBUG] scheduledDateTime creado: $scheduledDateTime');
+          debugPrint('  [DEBUG] scheduledDate: $scheduledDate');
 
-          // Convertir la fecha programada a la zona horaria local primero
-          debugPrint('  [DEBUG] Convirtiendo a TZDateTime...');
-          scheduledDate = tz.TZDateTime.from(scheduledDateTime, tz.local);
-          debugPrint('  [DEBUG] scheduledDate convertido: $scheduledDate');
-
-          // Si la fecha es hoy o pasada, ajustar para mañana a la hora especificada
-          if (scheduledDate.isBefore(nowTz) ||
-              scheduledDate.isAtSameMomentAs(nowTz)) {
-            // Programar para mañana a la hora especificada (notificationHour:notificationMinute) en la zona horaria local
-            scheduledDate = tz.TZDateTime(
-              tz.local,
-              nowTz.year,
-              nowTz.month,
-              nowTz.day,
-              notificationHour,
-              notificationMinute,
-            ).add(const Duration(days: 1));
+          if (!scheduledDate.isAfter(nowTz)) {
             debugPrint(
-              'Fecha ajustada al futuro: $scheduledDate (era: $scheduledDateTime)',
-            );
-          }
-
-          // Verificación final: asegurar que la fecha sea futura (recalcular nowTz para asegurar precisión)
-          debugPrint('  [DEBUG] Verificando si la fecha es futura...');
-          final nowTzFinal = tz.TZDateTime.now(tz.local);
-          debugPrint(
-            '  [DEBUG] scheduledDate: $scheduledDate, nowTzFinal: $nowTzFinal',
-          );
-          if (scheduledDate.isBefore(nowTzFinal) ||
-              scheduledDate.isAtSameMomentAs(nowTzFinal)) {
-            debugPrint(
-              '⚠️ Saltando notificación ${i + 1}: fecha aún en el pasado o presente después del ajuste ($scheduledDate, ahora: $nowTzFinal)',
+              '⚠️ Saltando notificación ${i + 1}: fecha/hora ya pasó ($scheduledDate, ahora: $nowTz)',
             );
             continue;
           }
-          debugPrint('  [DEBUG] Fecha es futura, continuando...');
         }
 
         // Usar el ID base + índice como ID de notificación para evitar conflictos
@@ -730,15 +729,8 @@ class NotificationService {
       await initialize();
     }
 
-    // Cancelar todas las notificaciones anteriores de esta alerta
-    final baseNotificationId =
-        alert.id?.hashCode ?? DateTime.now().millisecondsSinceEpoch;
-    // Cancelar hasta 100 notificaciones posibles (por si acaso)
-    for (int i = 0; i < 100; i++) {
-      await _notifications.cancel(baseNotificationId + i);
-    }
+    await cancelNotification(alert);
 
-    // Si la alerta no está completada y la fecha es futura, programar nuevas notificaciones
     if (!alert.isCompleted) {
       final alertDateNormalized = DateTime(
         alert.alertDate.year,
@@ -763,8 +755,7 @@ class NotificationService {
       await initialize();
     }
 
-    final baseNotificationId =
-        alert.id?.hashCode ?? DateTime.now().millisecondsSinceEpoch;
+    final baseNotificationId = _notificationIdFor(alert.id, 0);
     // Cancelar hasta 100 notificaciones posibles (por si acaso)
     for (int i = 0; i < 100; i++) {
       await _notifications.cancel(baseNotificationId + i);
@@ -788,15 +779,49 @@ class NotificationService {
       await initialize();
     }
 
+    final todayNormalized = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+
     for (final alert in alerts) {
-      if (!alert.isCompleted && alert.alertDate.isAfter(DateTime.now())) {
-        try {
-          await scheduleAlertNotification(alert);
-        } catch (e) {
-          debugPrint(
-            'Error programando notificación para alerta ${alert.id}: $e',
+      if (alert.isCompleted) continue;
+
+      final alertDateNormalized = DateTime(
+        alert.alertDate.year,
+        alert.alertDate.month,
+        alert.alertDate.day,
+      );
+
+      if (alertDateNormalized.compareTo(todayNormalized) < 0) {
+        continue;
+      }
+
+      final timeParts = (alert.notificationTime ?? '08:00').split(':');
+      final notificationHour = int.parse(timeParts[0]);
+      final notificationMinute = int.parse(timeParts[1]);
+
+      final isFutureDate = alertDateNormalized.isAfter(todayNormalized);
+      final isTodayWithFutureTime = alertDateNormalized.isAtSameMomentAs(
+            todayNormalized,
+          ) &&
+          _isNotificationTimeInFuture(
+            alertDateNormalized,
+            notificationHour,
+            notificationMinute,
           );
-        }
+
+      if (!isFutureDate && !isTodayWithFutureTime) {
+        continue;
+      }
+
+      try {
+        await scheduleAlertNotification(alert);
+      } catch (e) {
+        debugPrint(
+          'Error programando notificación para alerta ${alert.id}: $e',
+        );
       }
     }
   }
@@ -864,8 +889,8 @@ class NotificationService {
       final List<PendingNotificationRequest> pendingNotifications =
           await _notifications.pendingNotificationRequests();
 
-      // El ID base de las notificaciones se calcula como alert.id.hashCode
-      final baseNotificationId = alert.id!.hashCode;
+      // El ID base de las notificaciones se calcula de forma positiva y estable
+      final baseNotificationId = _notificationIdFor(alert.id, 0);
 
       // Buscar cualquier notificación que coincida con el ID base
       // (las notificaciones usan baseNotificationId + índice)
