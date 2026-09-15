@@ -121,8 +121,6 @@ class AuthProvider extends ChangeNotifier {
 
       await _supabase.auth.resetPasswordForEmail(email);
 
-      await _supabase.auth.signOut();
-
       _isLoading = false;
       notifyListeners();
       return true;
