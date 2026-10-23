@@ -1,5 +1,5 @@
 import '../models/car.dart';
-import '../models/income.dart';
+import '../models/car_transaction.dart';
 import '../models/alert.dart';
 import '../models/mileage_reading.dart';
 import '../models/maintenance_log.dart';
@@ -101,79 +101,81 @@ class DatabaseHelper {
   }
 
   // ============================================
-  // MÉTODOS PARA INCOMES
+  // MÉTODOS PARA MOVIMIENTOS (ingresos y egresos)
   // ============================================
 
-  Future<String> insertIncome(Income income) async {
+  static const String _transactionsTable = 'car_transactions';
+
+  Future<String> insertTransaction(CarTransaction transaction) async {
     final userId = _requireAuth();
-    
-    // Asegurar que el income tenga el user_id correcto
-    final incomeData = income.toMap();
-    incomeData['user_id'] = userId;
-    
+
+    // Asegurar que el movimiento tenga el user_id correcto
+    final data = transaction.toMap();
+    data['user_id'] = userId;
+
     final response = await SupabaseConfig.client
-        .from('incomes')
-        .insert(incomeData)
+        .from(_transactionsTable)
+        .insert(data)
         .select('id')
         .single();
-    
+
     return response['id'] as String;
   }
 
-  Future<List<Income>> getAllIncomes() async {
+  Future<List<CarTransaction>> getAllTransactions() async {
     _requireAuth();
-    
+
     // RLS automáticamente filtra por user_id
     final response = await SupabaseConfig.client
-        .from('incomes')
+        .from(_transactionsTable)
         .select()
         .order('date', ascending: false);
-    
+
     return (response as List)
-        .map((map) => Income.fromMap(map as Map<String, dynamic>))
+        .map((map) => CarTransaction.fromMap(map as Map<String, dynamic>))
         .toList();
   }
 
-  Future<List<Income>> getIncomesByCar(String carId) async {
+  Future<List<CarTransaction>> getTransactionsByCar(String carId) async {
     _requireAuth();
-    
-    // RLS garantiza que solo puedas ver ingresos de tus propios carros
+
+    // RLS garantiza que solo puedas ver movimientos de tus propios carros
     final response = await SupabaseConfig.client
-        .from('incomes')
+        .from(_transactionsTable)
         .select()
         .eq('car_id', carId)
         .order('date', ascending: false);
-    
+
     return (response as List)
-        .map((map) => Income.fromMap(map as Map<String, dynamic>))
+        .map((map) => CarTransaction.fromMap(map as Map<String, dynamic>))
         .toList();
   }
 
-  Future<void> updateIncome(Income income) async {
+  Future<void> updateTransaction(CarTransaction transaction) async {
     _requireAuth();
-    
-    if (income.id == null) {
-      throw Exception('No se puede actualizar un ingreso sin ID');
+
+    if (transaction.id == null) {
+      throw Exception('No se puede actualizar un movimiento sin ID');
     }
-    
-    final updateData = income.toMap();
+
+    final updateData = transaction.toMap();
     // Remover id, user_id y car_id del update (no se deben actualizar)
     updateData.remove('id');
     updateData.remove('user_id');
     updateData.remove('car_id');
     updateData['updated_at'] = DateTime.now().toIso8601String();
-    
+
     await SupabaseConfig.client
-        .from('incomes')
+        .from(_transactionsTable)
         .update(updateData)
-        .eq('id', income.id!);
+        .eq('id', transaction.id!);
   }
 
-  Future<void> deleteIncome(String id) async {
+  Future<void> deleteTransaction(String id) async {
     _requireAuth();
-    
+
     await SupabaseConfig.client
-        .from('incomes')
+        .from(_transactionsTable)
         .delete()
         .eq('id', id);
   }
@@ -285,7 +287,7 @@ class DatabaseHelper {
         final description = descriptions[j % descriptions.length];
         final amount = 50000.0 + (j * 10000.0) + (carIds.indexOf(carId) * 1000.0); // Montos variados
 
-        final income = Income(
+        final income = CarTransaction(
           userId: userId,
           carId: carId,
           description: description,
@@ -294,17 +296,31 @@ class DatabaseHelper {
           notes: j % 4 == 0 ? 'Ingreso adicional' : null,
         );
 
-        await insertIncome(income);
+        await insertTransaction(income);
+
+        // Un egreso de combustible por cada ingreso, para datos de prueba
+        await insertTransaction(
+          CarTransaction(
+            userId: userId,
+            carId: carId,
+            type: TransactionType.expense,
+            description: 'Tanqueo',
+            amount: 30000.0 + (j * 2000.0),
+            date: baseDate,
+            category: TransactionCategory.fuel,
+            liters: 8.0 + j,
+          ),
+        );
       }
-      print('✅ 10 ingresos creados para carro ID: $carId');
+      print('✅ 10 ingresos y 10 egresos creados para carro ID: $carId');
     }
 
     print('🎉 Datos de prueba generados exitosamente: ${carIds.length} carros y ${carIds.length * 10} ingresos');
     
     // Verificar que los datos se guardaron correctamente
     final verifyCars = await getAllCars();
-    final verifyIncomes = await getAllIncomes();
-    print('✅ Verificación: ${verifyCars.length} carros y ${verifyIncomes.length} ingresos en la BD');
+    final verifyIncomes = await getAllTransactions();
+    print('✅ Verificación: ${verifyCars.length} carros y ${verifyIncomes.length} movimientos en la BD');
   }
 
   // ============================================

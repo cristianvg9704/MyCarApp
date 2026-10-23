@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../providers/car_provider.dart';
-import '../services/database_helper.dart';
+import '../services/transaction_repository.dart';
+import '../utils/currency_formatter.dart';
 import '../utils/my_car_colors.dart';
-import '../utils/income_modal_helper.dart';
+import '../utils/transaction_chart_utils.dart';
+import '../utils/transaction_modal_helper.dart';
 import '../utils/vehicle_image_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
 
-class IncomesListScreen extends StatelessWidget {
-  const IncomesListScreen({super.key});
+class FinancesListScreen extends StatelessWidget {
+  final TransactionRepository? repository;
+
+  const FinancesListScreen({super.key, this.repository});
 
   Widget _buildCarThumbnail(String? imageBase64) {
     const fallback = Icon(
@@ -31,18 +34,19 @@ class IncomesListScreen extends StatelessWidget {
     return fallback;
   }
 
-  Future<double> _getTotalIncomeForCar(String? carId) async {
-    if (carId == null || carId.isEmpty) return 0.0;
+  Future<TransactionSummary> _getSummaryForCar(String? carId) async {
+    const empty = TransactionSummary(
+      income: 0,
+      expense: 0,
+      expenseByCategory: {},
+    );
+    if (carId == null || carId.isEmpty) return empty;
     try {
-      final incomes = await DatabaseHelper.instance.getIncomesByCar(carId);
-      double total = 0.0;
-      for (var income in incomes) {
-        total += income.amount;
-      }
-      return total;
+      final repo = repository ?? SupabaseTransactionRepository();
+      return TransactionSummary.of(await repo.getByCar(carId));
     } catch (e) {
-      debugPrint('Error getting total income: $e');
-      return 0.0;
+      debugPrint('Error getting car summary: $e');
+      return empty;
     }
   }
 
@@ -52,7 +56,7 @@ class IncomesListScreen extends StatelessWidget {
       backgroundColor: MyCarColors.backgroundLight,
       appBar: AppBar(
         title: Text(
-          'Ingresos',
+          'Finanzas',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             letterSpacing: -0.3,
@@ -74,8 +78,9 @@ class IncomesListScreen extends StatelessWidget {
                   size: 22,
                 ),
               ),
-              onPressed: () => IncomeModalHelper.showAddIncomeModal(context),
-              tooltip: 'Agregar ingreso',
+              onPressed: () =>
+                  TransactionModalHelper.showAddTransactionModal(context),
+              tooltip: 'Registrar movimiento',
             ),
           ),
         ],
@@ -160,7 +165,7 @@ class IncomesListScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Agrega un vehículo para comenzar\na registrar ingresos',
+                    'Agrega un vehículo para comenzar\na registrar ingresos y egresos',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: MyCarColors.textSecondary,
                       height: 1.5,
@@ -202,10 +207,10 @@ class IncomesListScreen extends StatelessWidget {
             itemCount: carProvider.cars.length,
             itemBuilder: (context, index) {
               final car = carProvider.cars[index];
-              return FutureBuilder<double>(
-                future: _getTotalIncomeForCar(car.id),
+              return FutureBuilder<TransactionSummary>(
+                future: _getSummaryForCar(car.id),
                 builder: (context, snapshot) {
-                  final totalIncome = snapshot.data ?? 0.0;
+                  final summary = snapshot.data;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
@@ -224,7 +229,10 @@ class IncomesListScreen extends StatelessWidget {
                       child: InkWell(
                         onTap: () {
                           if (car.id != null) {
-                            IncomeModalHelper.showAddIncomeModal(context, carId: car.id!);
+                            TransactionModalHelper.showAddTransactionModal(
+                              context,
+                              carId: car.id!,
+                            );
                           }
                         },
                         borderRadius: BorderRadius.circular(16),
@@ -324,26 +332,40 @@ class IncomesListScreen extends StatelessWidget {
                                     const SizedBox(height: 10),
                                     Row(
                                       children: [
-                                        Icon(
-                                          Icons.attach_money_rounded,
+                                        const Icon(
+                                          Icons.account_balance_wallet_outlined,
                                           size: 18,
                                           color: MyCarColors.primary,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          NumberFormat.currency(
-                                            symbol: '\$',
-                                            decimalDigits: 0,
-                                          ).format(totalIncome),
+                                          CurrencyFormatter.format(
+                                            summary?.balance ?? 0,
+                                          ),
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleMedium
                                               ?.copyWith(
-                                                color: MyCarColors.primary,
+                                                color:
+                                                    (summary?.balance ?? 0) >= 0
+                                                    ? MyCarColors.primary
+                                                    : MyCarColors.error,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                         ),
                                       ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Ingresos ${CurrencyFormatter.format(summary?.income ?? 0)}'
+                                      ' · Egresos ${CurrencyFormatter.format(summary?.expense ?? 0)}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: MyCarColors.textSecondary,
+                                            fontSize: 12,
+                                          ),
                                     ),
                                   ],
                                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/car.dart';
+import '../../utils/currency_formatter.dart';
 import '../../utils/my_car_colors.dart';
 import '../../utils/vehicle_image_helper.dart';
 
@@ -69,7 +70,7 @@ class CarInfoTab extends StatelessWidget {
                   const SizedBox(height: 16),
                   _InfoRow(
                     label: 'Precio de Compra',
-                    value: '\$${NumberFormat('#,##0.00').format(car.purchasePrice)}',
+                    value: CurrencyFormatter.format(car.purchasePrice!),
                   ),
                 ],
                 if (car.notes != null && car.notes!.isNotEmpty) ...[

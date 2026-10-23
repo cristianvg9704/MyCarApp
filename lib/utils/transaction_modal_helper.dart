@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../screens/add_income_screen.dart';
+import '../models/car_transaction.dart';
+import '../screens/add_transaction_screen.dart';
 import '../providers/car_provider.dart';
 
-class IncomeModalHelper {
-  /// Muestra un modal desde abajo para agregar un ingreso
-  static Future<bool?> showAddIncomeModal(BuildContext context, {String? carId}) {
+class TransactionModalHelper {
+  /// Muestra un modal desde abajo para registrar un ingreso o un egreso
+  static Future<bool?> showAddTransactionModal(
+    BuildContext context, {
+    String? carId,
+    TransactionType initialType = TransactionType.income,
+  }) {
     // Guardar una referencia al contexto original para usar después
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final carProvider = Provider.of<CarProvider>(context, listen: false);
@@ -45,7 +50,7 @@ class IncomeModalHelper {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Agregar Ingreso',
+                      'Registrar Movimiento',
                       style: Theme.of(modalContext).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.3,
@@ -63,7 +68,11 @@ class IncomeModalHelper {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  child: AddIncomeScreen(initialCarId: carId, inModal: true),
+                  child: AddTransactionScreen(
+                    initialCarId: carId,
+                    initialType: initialType,
+                    inModal: true,
+                  ),
                 ),
               ),
             ],
@@ -71,12 +80,12 @@ class IncomeModalHelper {
         ),
       ),
     ).then((success) {
-      // Recargar vehículos si se agregó un ingreso exitosamente
+      // Recargar vehículos si se agregó un movimiento exitosamente
       if (success == true) {
         // Usar las referencias guardadas en lugar del context
         scaffoldMessenger.showSnackBar(
           const SnackBar(
-            content: Text('Ingreso guardado exitosamente'),
+            content: Text('Movimiento guardado exitosamente'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),

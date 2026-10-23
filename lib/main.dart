@@ -10,10 +10,10 @@ import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'utils/vehicle_modal_helper.dart';
-import 'screens/add_income_screen.dart';
+import 'screens/add_transaction_screen.dart';
 import 'screens/vehicles_list_screen.dart';
-import 'screens/incomes_list_screen.dart';
-import 'screens/car_incomes_screen.dart';
+import 'screens/finances_list_screen.dart';
+import 'screens/car_finances_screen.dart';
 import 'screens/car_detail_screen.dart';
 import 'screens/alerts_list_screen.dart';
 import 'screens/add_alert_screen.dart';
@@ -24,7 +24,7 @@ import 'screens/auth/forgot_password_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'providers/app_provider.dart';
 import 'providers/car_provider.dart';
-import 'providers/income_provider.dart';
+import 'providers/transaction_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/alert_provider.dart';
@@ -32,7 +32,7 @@ import 'providers/subscription_provider.dart';
 import 'providers/mileage_provider.dart';
 import 'providers/trip_provider.dart';
 import 'utils/app_theme.dart';
-import 'utils/income_modal_helper.dart';
+import 'utils/transaction_modal_helper.dart';
 import 'services/database_helper.dart';
 import 'services/notification_service.dart';
 import 'services/subscription_service.dart';
@@ -177,7 +177,7 @@ class MyCarApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => CarProvider()),
-        ChangeNotifierProvider(create: (_) => IncomeProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => AlertProvider()),
         ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
         ChangeNotifierProvider(create: (_) => MileageProvider()),
@@ -315,7 +315,7 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/add-income',
-      builder: (context, state) => const AddIncomeScreen(),
+      builder: (context, state) => const AddTransactionScreen(),
     ),
     GoRoute(
       path: '/vehicles',
@@ -323,7 +323,7 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/incomes',
-      builder: (context, state) => const IncomesListScreen(),
+      builder: (context, state) => const FinancesListScreen(),
     ),
     GoRoute(
       path: '/alerts',
@@ -342,7 +342,7 @@ final GoRouter _router = GoRouter(
             body: Center(child: Text('Error: carId no proporcionado')),
           );
         }
-        return CarIncomesScreen(carId: carIdStr);
+        return CarFinancesScreen(carId: carIdStr);
       },
     ),
     GoRoute(
@@ -403,7 +403,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const IncomesListScreen(),
+    const FinancesListScreen(),
     const AlertsListScreen(),
     const SettingsScreen(),
   ];
@@ -464,7 +464,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   _buildNavItem(
                     context,
                     icon: Icons.attach_money,
-                    label: 'Ingresos',
+                    label: 'Finanzas',
                     index: 1,
                     onTap: () => _onItemTapped(1),
                   ),
@@ -550,10 +550,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         child: InkWell(
           onTap: () {
             debugPrint('Botón flotante presionado. Índice seleccionado: $_selectedIndex');
-            // Si estamos en la sección de Ingresos (índice 1), abrir modal de agregar ingreso
+            // Si estamos en la sección de Finanzas (índice 1), abrir modal de registrar movimiento
             if (_selectedIndex == 1) {
-              debugPrint('Abriendo modal de agregar ingreso');
-              IncomeModalHelper.showAddIncomeModal(context);
+              debugPrint('Abriendo modal de registrar movimiento');
+              TransactionModalHelper.showAddTransactionModal(context);
             } else if (_selectedIndex == 2) {
               // Si estamos en Alertas (índice 2), navegar a agregar alerta
               debugPrint('Navegando a agregar alerta');

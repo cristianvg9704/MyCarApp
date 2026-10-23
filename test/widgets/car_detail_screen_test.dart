@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:new_my_car_app/models/car.dart';
-import 'package:new_my_car_app/models/income.dart';
+import 'package:new_my_car_app/models/car_transaction.dart';
 import 'package:new_my_car_app/screens/car_detail_screen.dart';
 
 void main() {
@@ -17,8 +17,8 @@ void main() {
     notes: 'Cambio de aceite pendiente',
   );
 
-  final incomes = [
-    Income(
+  final transactions = [
+    CarTransaction(
       id: 'i1',
       userId: 'u1',
       carId: 'c1',
@@ -26,11 +26,21 @@ void main() {
       amount: 120000,
       date: DateTime.now(),
     ),
+    CarTransaction(
+      id: 'e1',
+      userId: 'u1',
+      carId: 'c1',
+      type: TransactionType.expense,
+      description: 'Tanqueo Terpel',
+      amount: 40000,
+      date: DateTime.now(),
+      category: TransactionCategory.fuel,
+    ),
   ];
 
   Widget buildScreen({
     Future<Car?> Function(String)? carLoader,
-    Future<List<Income>> Function(String)? incomesLoader,
+    Future<List<CarTransaction>> Function(String)? transactionsLoader,
   }) {
     return MaterialApp.router(
       routerConfig: GoRouter(
@@ -40,7 +50,8 @@ void main() {
             builder: (_, _) => CarDetailScreen(
               carId: 'c1',
               carLoader: carLoader ?? (_) async => car,
-              incomesLoader: incomesLoader ?? (_) async => incomes,
+              transactionsLoader:
+                  transactionsLoader ?? (_) async => transactions,
             ),
           ),
         ],
@@ -71,7 +82,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Toyota Corolla'), findsOneWidget);
-      for (final label in ['Detalle', 'Ingresos', 'Gráficos', 'Kilometraje']) {
+      for (final label in ['Detalle', 'Movimientos', 'Gráficos', 'Kilometraje']) {
         expect(find.widgetWithText(Tab, label), findsOneWidget);
       }
     });
@@ -88,32 +99,57 @@ void main() {
       expect(find.text('Viaje aeropuerto'), findsNothing);
     });
 
-    testWidgets('Ingresos tab shows incomes and hides car info', (
+    testWidgets('Movimientos tab shows incomes and expenses, hides car info', (
       tester,
     ) async {
       await tester.pumpWidget(buildScreen());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(Tab, 'Ingresos'));
+      await tester.tap(find.widgetWithText(Tab, 'Movimientos'));
       await tester.pumpAndSettle();
 
       expect(find.text('Viaje aeropuerto'), findsOneWidget);
+      expect(find.text('+\$120.000'), findsOneWidget);
+      expect(find.text('Tanqueo Terpel'), findsOneWidget);
+      expect(find.text('-\$40.000'), findsOneWidget);
       expect(find.text('ABC123'), findsNothing);
     });
 
-    testWidgets('Ingresos tab shows empty state without incomes', (
-      tester,
-    ) async {
-      await tester.pumpWidget(buildScreen(incomesLoader: (_) async => []));
+    testWidgets('Movimientos tab filters by type', (tester) async {
+      await tester.pumpWidget(buildScreen());
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(Tab, 'Movimientos'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(Tab, 'Ingresos'));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Egresos'));
       await tester.pumpAndSettle();
+      expect(find.text('Tanqueo Terpel'), findsOneWidget);
+      expect(find.text('Viaje aeropuerto'), findsNothing);
 
-      expect(find.text('No hay ingresos'), findsOneWidget);
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Ingresos'));
+      await tester.pumpAndSettle();
+      expect(find.text('Viaje aeropuerto'), findsOneWidget);
+      expect(find.text('Tanqueo Terpel'), findsNothing);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Todos'));
+      await tester.pumpAndSettle();
+      expect(find.text('Viaje aeropuerto'), findsOneWidget);
+      expect(find.text('Tanqueo Terpel'), findsOneWidget);
     });
 
-    testWidgets('Gráficos tab shows period selector and stats', (tester) async {
+    testWidgets('Movimientos tab shows empty state without transactions', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildScreen(transactionsLoader: (_) async => []));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(Tab, 'Movimientos'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No hay movimientos'), findsOneWidget);
+    });
+
+    testWidgets('Gráficos tab shows period selector and totals', (tester) async {
       await tester.pumpWidget(buildScreen());
       await tester.pumpAndSettle();
 
@@ -123,21 +159,24 @@ void main() {
       expect(find.text('7 días'), findsOneWidget);
       expect(find.text('30 días'), findsOneWidget);
       expect(find.text('Todos'), findsOneWidget);
-      expect(find.text('Total'), findsOneWidget);
-      expect(find.text('Promedio'), findsOneWidget);
+      expect(find.text('Ingresos'), findsWidgets);
+      expect(find.text('Egresos'), findsWidgets);
+      expect(find.text('Balance'), findsOneWidget);
+      expect(find.text('\$80.000'), findsOneWidget); // 120.000 - 40.000
+      expect(find.text('Egresos por categoría'), findsOneWidget);
     });
 
     testWidgets('Gráficos tab shows empty state without incomes', (
       tester,
     ) async {
-      await tester.pumpWidget(buildScreen(incomesLoader: (_) async => []));
+      await tester.pumpWidget(buildScreen(transactionsLoader: (_) async => []));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(Tab, 'Gráficos'));
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Debes agregar ingresos para ver los gráficos'),
+        find.text('Debes registrar movimientos para ver los gráficos'),
         findsOneWidget,
       );
     });

@@ -2,31 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../models/car.dart';
-import '../models/income.dart';
+import '../models/car_transaction.dart';
 import '../services/database_helper.dart';
 import '../providers/car_provider.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/vehicle_modal_helper.dart';
 import '../widgets/car_detail/car_charts_tab.dart';
-import '../widgets/car_detail/car_incomes_tab.dart';
+import '../widgets/car_detail/car_transactions_tab.dart';
 import '../widgets/car_detail/car_info_tab.dart';
 import '../widgets/car_mileage_tab.dart';
 
 typedef CarLoader = Future<Car?> Function(String carId);
-typedef IncomesLoader = Future<List<Income>> Function(String carId);
+typedef TransactionsLoader =
+    Future<List<CarTransaction>> Function(String carId);
 
 class CarDetailScreen extends StatefulWidget {
   final String carId;
 
   /// Cargadores inyectables para poder probar la pantalla sin Supabase.
   final CarLoader? carLoader;
-  final IncomesLoader? incomesLoader;
+  final TransactionsLoader? transactionsLoader;
 
   const CarDetailScreen({
     super.key,
     required this.carId,
     this.carLoader,
-    this.incomesLoader,
+    this.transactionsLoader,
   });
 
   @override
@@ -36,13 +37,14 @@ class CarDetailScreen extends StatefulWidget {
 class _CarDetailScreenState extends State<CarDetailScreen> {
   Car? _car;
   bool _isLoading = true;
-  List<Income> _incomes = [];
-  bool _isLoadingIncomes = false;
+  List<CarTransaction> _transactions = [];
+  bool _isLoadingTransactions = false;
 
   CarLoader get _loadCarData =>
       widget.carLoader ?? DatabaseHelper.instance.getCar;
-  IncomesLoader get _loadIncomesData =>
-      widget.incomesLoader ?? DatabaseHelper.instance.getIncomesByCar;
+  TransactionsLoader get _loadTransactionsData =>
+      widget.transactionsLoader ??
+      DatabaseHelper.instance.getTransactionsByCar;
 
   @override
   void initState() {
@@ -58,27 +60,27 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
         _car = car;
         _isLoading = false;
       });
-      if (car != null) _loadIncomes();
+      if (car != null) _loadTransactions();
     } catch (e) {
       debugPrint('Error loading car: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _loadIncomes() async {
+  Future<void> _loadTransactions() async {
     final carId = _car?.id;
     if (carId == null) return;
-    setState(() => _isLoadingIncomes = true);
+    setState(() => _isLoadingTransactions = true);
     try {
-      final incomes = await _loadIncomesData(carId);
+      final transactions = await _loadTransactionsData(carId);
       if (!mounted) return;
       setState(() {
-        _incomes = incomes;
-        _isLoadingIncomes = false;
+        _transactions = transactions;
+        _isLoadingTransactions = false;
       });
     } catch (e) {
-      debugPrint('Error loading incomes: $e');
-      if (mounted) setState(() => _isLoadingIncomes = false);
+      debugPrint('Error loading transactions: $e');
+      if (mounted) setState(() => _isLoadingTransactions = false);
     }
   }
 
@@ -187,7 +189,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Detalle'),
-              Tab(text: 'Ingresos'),
+              Tab(text: 'Movimientos'),
               Tab(text: 'Gráficos'),
               Tab(text: 'Kilometraje'),
             ],
@@ -198,8 +200,14 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
           child: TabBarView(
             children: [
               CarInfoTab(car: car),
-              CarIncomesTab(incomes: _incomes, isLoading: _isLoadingIncomes),
-              CarChartsTab(incomes: _incomes, isLoading: _isLoadingIncomes),
+              CarTransactionsTab(
+                transactions: _transactions,
+                isLoading: _isLoadingTransactions,
+              ),
+              CarChartsTab(
+                transactions: _transactions,
+                isLoading: _isLoadingTransactions,
+              ),
               SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   16,

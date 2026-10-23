@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:new_my_car_app/screens/incomes_list_screen.dart';
+import 'package:new_my_car_app/screens/finances_list_screen.dart';
 import 'package:new_my_car_app/providers/car_provider.dart';
 
 void main() {
@@ -14,7 +14,7 @@ void main() {
             path: '/',
             builder: (context, state) => ChangeNotifierProvider(
               create: (_) => CarProvider(),
-              child: const IncomesListScreen(),
+              child: const FinancesListScreen(),
             ),
           ),
         ],
@@ -22,14 +22,14 @@ void main() {
     );
   }
 
-  group('IncomesListScreen Widget Tests', () {
-    testWidgets('should display the app bar title and add income button', (
+  group('FinancesListScreen Widget Tests', () {
+    testWidgets('should display the app bar title and add transaction button', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(buildTestableScreen());
       await tester.pump();
 
-      expect(find.text('Ingresos'), findsOneWidget);
+      expect(find.text('Finanzas'), findsOneWidget);
       expect(find.byIcon(Icons.add), findsWidgets);
     });
 

@@ -1,20 +1,21 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/income.dart';
-import '../../utils/income_chart_utils.dart';
+import '../../models/car_transaction.dart';
+import '../../utils/currency_formatter.dart';
 import '../../utils/my_car_colors.dart';
+import '../../utils/transaction_chart_utils.dart';
 import '../empty_state.dart';
 import '../stat_card.dart';
 
-/// Tab "Gráficos": ingresos por día con selector de período.
+/// Tab "Gráficos": ingresos y egresos por día con selector de período.
 class CarChartsTab extends StatefulWidget {
-  final List<Income> incomes;
+  final List<CarTransaction> transactions;
   final bool isLoading;
 
   const CarChartsTab({
     super.key,
-    required this.incomes,
+    required this.transactions,
     required this.isLoading,
   });
 
@@ -37,17 +38,18 @@ class _CarChartsTabState extends State<CarChartsTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (widget.incomes.isEmpty) {
+    if (widget.transactions.isEmpty) {
       return const EmptyState(
         icon: Icons.bar_chart_outlined,
-        title: 'No hay ingresos',
-        message: 'Debes agregar ingresos para ver los gráficos',
+        title: 'No hay movimientos',
+        message: 'Debes registrar movimientos para ver los gráficos',
       );
     }
 
-    final data = groupIncomesByDay(widget.incomes, _period);
-    final total = data.fold<double>(0, (sum, e) => sum + e.value);
-    final average = data.isNotEmpty ? total / data.length : 0.0;
+    final data = groupTransactionsByDay(widget.transactions, _period);
+    final summary = TransactionSummary.of(
+      filterByPeriod(widget.transactions, _period),
+    );
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
@@ -88,7 +90,7 @@ class _CarChartsTabState extends State<CarChartsTab> {
                   icon: Icons.bar_chart_outlined,
                   title: 'No hay datos para este período',
                   message:
-                      'Intenta seleccionar "Todos" para ver todos los ingresos',
+                      'Intenta seleccionar "Todos" para ver todos los movimientos',
                 ),
               )
             else ...[
@@ -96,35 +98,51 @@ class _CarChartsTabState extends State<CarChartsTab> {
                 children: [
                   Expanded(
                     child: StatCard(
-                      label: 'Total',
-                      value: '\$${NumberFormat('#,##0.00').format(total)}',
-                      icon: Icons.attach_money,
+                      label: 'Ingresos',
+                      value: CurrencyFormatter.format(summary.income),
+                      icon: Icons.arrow_downward_rounded,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: StatCard(
-                      label: 'Promedio',
-                      value: '\$${NumberFormat('#,##0.00').format(average)}',
-                      icon: Icons.trending_up,
+                      label: 'Egresos',
+                      value: CurrencyFormatter.format(summary.expense),
+                      icon: Icons.arrow_upward_rounded,
+                      valueColor: MyCarColors.error,
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              StatCard(
+                label: 'Balance',
+                value: CurrencyFormatter.format(summary.balance),
+                icon: Icons.account_balance_wallet_outlined,
+                valueColor: summary.balance >= 0
+                    ? MyCarColors.success
+                    : MyCarColors.error,
+              ),
               const SizedBox(height: 24),
+              const _ChartLegend(),
+              const SizedBox(height: 12),
               SizedBox(
                 height: 320,
-                child: data.length > 7
+                child: data.length > 5
                     ? SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: SizedBox(
-                          width: data.length * 50.0,
+                          width: data.length * 64.0,
                           height: 300,
                           child: BarChart(_barChartData(data)),
                         ),
                       )
                     : BarChart(_barChartData(data)),
               ),
+              if (summary.expenseByCategory.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _ExpenseBreakdown(byCategory: summary.expenseByCategory),
+              ],
             ],
           ],
         ),
@@ -132,8 +150,11 @@ class _CarChartsTabState extends State<CarChartsTab> {
     );
   }
 
-  BarChartData _barChartData(List<MapEntry<DateTime, double>> data) {
-    final maxY = data.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
+  BarChartData _barChartData(List<DayTotals> data) {
+    final maxValue = data
+        .map((e) => e.income > e.expense ? e.income : e.expense)
+        .reduce((a, b) => a > b ? a : b);
+    final maxY = (maxValue == 0 ? 1 : maxValue) * 1.2;
     final yInterval = maxY / 5;
     const axisLabelStyle = TextStyle(
       color: MyCarColors.textSecondary,
@@ -157,8 +178,9 @@ class _CarChartsTabState extends State<CarChartsTab> {
             }
             final entry = data[groupIndex];
             return BarTooltipItem(
-              '${DateFormat('dd/MM').format(entry.key)}\n'
-              '\$${NumberFormat('#,##0.00').format(entry.value)}',
+              '${DateFormat('dd/MM').format(entry.day)}\n'
+              '${rodIndex == 0 ? 'Ingreso' : 'Egreso'}: '
+              '${CurrencyFormatter.format(rodIndex == 0 ? entry.income : entry.expense)}',
               const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -180,7 +202,7 @@ class _CarChartsTabState extends State<CarChartsTab> {
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  DateFormat('dd/MM').format(data[index].key),
+                  DateFormat('dd/MM').format(data[index].day),
                   style: axisLabelStyle,
                 ),
               );
@@ -195,7 +217,7 @@ class _CarChartsTabState extends State<CarChartsTab> {
             getTitlesWidget: (value, meta) {
               if (value < 0) return const Text('');
               return Text(
-                '\$${NumberFormat('#,##0').format(value)}',
+                CurrencyFormatter.format(value),
                 style: axisLabelStyle,
               );
             },
@@ -226,16 +248,102 @@ class _CarChartsTabState extends State<CarChartsTab> {
         for (var i = 0; i < data.length; i++)
           BarChartGroupData(
             x: i,
+            barsSpace: 4,
             barRods: [
               BarChartRodData(
-                toY: data[i].value,
+                toY: data[i].income,
                 color: MyCarColors.success,
-                width: 20,
+                width: 14,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(4),
+                ),
+              ),
+              BarChartRodData(
+                toY: data[i].expense,
+                color: MyCarColors.error,
+                width: 14,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(4),
                 ),
               ),
             ],
+          ),
+      ],
+    );
+  }
+}
+
+class _ChartLegend extends StatelessWidget {
+  const _ChartLegend();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget item(Color color, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: MyCarColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+
+    return Row(
+      children: [
+        item(MyCarColors.success, 'Ingresos'),
+        const SizedBox(width: 16),
+        item(MyCarColors.error, 'Egresos'),
+      ],
+    );
+  }
+}
+
+class _ExpenseBreakdown extends StatelessWidget {
+  final Map<TransactionCategory, double> byCategory;
+
+  const _ExpenseBreakdown({required this.byCategory});
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = byCategory.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Egresos por categoría',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: MyCarColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (final entry in entries)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(entry.key.label),
+                Text(
+                  CurrencyFormatter.format(entry.value),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
       ],
     );
