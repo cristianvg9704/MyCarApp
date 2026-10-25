@@ -16,11 +16,7 @@ class FinancesListScreen extends StatelessWidget {
   const FinancesListScreen({super.key, this.repository});
 
   Widget _buildCarThumbnail(String? imageBase64) {
-    const fallback = Icon(
-      Icons.directions_car,
-      color: Colors.white,
-      size: 28,
-    );
+    const fallback = Icon(Icons.directions_car, color: Colors.white, size: 28);
     final bytes = VehicleImage.decode(imageBase64);
     if (bytes != null) {
       return Image.memory(
@@ -108,18 +104,14 @@ class FinancesListScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 72,
-                    color: MyCarColors.error,
-                  ),
+                  Icon(Icons.error_outline, size: 72, color: MyCarColors.error),
                   const SizedBox(height: 24),
                   Text(
                     carProvider.errorMessage!,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: MyCarColors.textSecondary,
-                        ),
+                      color: MyCarColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -136,68 +128,73 @@ class FinancesListScreen extends StatelessWidget {
           }
 
           if (carProvider.cars.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(40.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(
-                      color: MyCarColors.primaryLight.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.directions_car_outlined,
-                      size: 72,
-                      color: MyCarColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'No hay vehículos',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: MyCarColors.textPrimary,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Agrega un vehículo para comenzar\na registrar ingresos y egresos',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MyCarColors.textSecondary,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-                  FilledButton.icon(
-                    onPressed: () => VehicleModalHelper.showAddVehicleModal(context),
-                    icon: const Icon(Icons.add, size: 20),
-                    label: const Text(
-                      'Agregar Vehículo',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
+            // Scrollable para que no desborde en pantallas pequeñas
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(40.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(40),
+                      decoration: BoxDecoration(
+                        color: MyCarColors.primaryLight.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.directions_car_outlined,
+                        size: 72,
+                        color: MyCarColors.primary,
                       ),
                     ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: MyCarColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
+                    const SizedBox(height: 32),
+                    Text(
+                      'No hay vehículos',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: MyCarColors.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Text(
+                      'Agrega un vehículo para comenzar\na registrar ingresos y egresos',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: MyCarColors.textSecondary,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    FilledButton.icon(
+                      onPressed: () =>
+                          VehicleModalHelper.showAddVehicleModal(context),
+                      icon: const Icon(Icons.add, size: 20),
+                      label: const Text(
+                        'Agregar Vehículo',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: MyCarColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }

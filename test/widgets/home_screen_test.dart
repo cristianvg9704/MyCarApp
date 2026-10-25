@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:new_my_car_app/screens/home_screen.dart';
 import 'package:new_my_car_app/providers/car_provider.dart';
+import 'package:new_my_car_app/providers/user_provider.dart';
 
 void main() {
   group('HomeScreen Widget Tests', () {
@@ -14,8 +15,11 @@ void main() {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => ChangeNotifierProvider(
-                  create: (_) => CarProvider(),
+                builder: (context, state) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(create: (_) => CarProvider()),
+                    ChangeNotifierProvider(create: (_) => UserProvider()),
+                  ],
                   child: const HomeScreen(),
                 ),
               ),
@@ -28,7 +32,8 @@ void main() {
 
       // Verify that the app bar contains user greeting
       expect(find.text('Hola,'), findsOneWidget);
-      expect(find.text('John Doe'), findsOneWidget);
+      // Sin usuario cargado, UserProvider expone el nombre por defecto
+      expect(find.text('Usuario'), findsOneWidget);
     });
 
     testWidgets('should display empty state when no cars', (WidgetTester tester) async {
@@ -38,8 +43,11 @@ void main() {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => ChangeNotifierProvider(
-                  create: (_) => CarProvider(),
+                builder: (context, state) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(create: (_) => CarProvider()),
+                    ChangeNotifierProvider(create: (_) => UserProvider()),
+                  ],
                   child: const HomeScreen(),
                 ),
               ),
@@ -66,8 +74,11 @@ void main() {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => ChangeNotifierProvider(
-                  create: (_) => CarProvider(),
+                builder: (context, state) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(create: (_) => CarProvider()),
+                    ChangeNotifierProvider(create: (_) => UserProvider()),
+                  ],
                   child: const HomeScreen(),
                 ),
               ),
