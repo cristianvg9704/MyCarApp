@@ -1,0 +1,61 @@
+{
+    // Ejecutar con: Cmd+Shift+P -> "Tasks: Run Task"
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Test: archivo actual",
+            "type": "shell",
+            "command": "flutter test ${relativeFile}",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: por nombre",
+            "type": "shell",
+            "command": "flutter test --plain-name \"${input:testName}\"",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: unitarios (models, utils, providers, services)",
+            "type": "shell",
+            "command": "flutter test test/models test/utils test/providers test/services",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: widgets",
+            "type": "shell",
+            "command": "flutter test test/widgets test/widget_test.dart",
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test: todos",
+            "type": "shell",
+            "command": "flutter test",
+            "group": { "kind": "test", "isDefault": true },
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "Analyze",
+            "type": "shell",
+            "command": "flutter analyze",
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testName",
+            "type": "promptString",
+            "description": "Texto que debe contener el nombre del test o del group",
+            "default": "parseAmount"
+        }
+    ]
+}
