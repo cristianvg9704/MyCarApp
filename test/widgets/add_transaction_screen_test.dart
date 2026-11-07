@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +45,8 @@ class _FakeRepository implements TransactionRepository {
 
 class _FakeSpeechRecognizer implements SpeechRecognizer {
   SpeechFailure? initFailure;
+  Object? initThrows;
+  Object? startThrows;
   int initializeCalls = 0;
   int stopCalls = 0;
   int cancelCalls = 0;
@@ -59,6 +62,7 @@ class _FakeSpeechRecognizer implements SpeechRecognizer {
   @override
   Future<SpeechFailure?> initialize() async {
     initializeCalls++;
+    if (initThrows != null) throw initThrows!;
     return initFailure;
   }
 
@@ -68,6 +72,7 @@ class _FakeSpeechRecognizer implements SpeechRecognizer {
     VoidCallback? onDone,
     void Function(SpeechFailure failure)? onError,
   }) async {
+    if (startThrows != null) throw startThrows!;
     _listening = true;
     _onResult = onResult;
     _onDone = onDone;
@@ -504,6 +509,39 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a missing native plugin shows a message instead of crashing', (
+      tester,
+    ) async {
+      recognizer.initThrows = MissingPluginException('speech_to_text');
+      await pumpScreen(tester);
+
+      await tapVoice(tester);
+
+      expect(
+        find.text(
+          'Este dispositivo no tiene reconocimiento de voz disponible.',
+        ),
+        findsOneWidget,
+      );
+      expect(recognizer.isListening, isFalse);
+      expect(find.text('Registrar por voz'), findsOneWidget);
+    });
+
+    testWidgets('a failure when starting to listen is reported', (
+      tester,
+    ) async {
+      recognizer.startThrows = Exception('boom');
+      await pumpScreen(tester);
+
+      await tapVoice(tester);
+
+      expect(
+        find.text('No se pudo reconocer la voz. Intenta de nuevo.'),
+        findsOneWidget,
+      );
+      expect(find.text('Registrar por voz'), findsOneWidget);
     });
 
     testWidgets('an error while listening stops and reports it', (

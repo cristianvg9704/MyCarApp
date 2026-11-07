@@ -108,7 +108,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   void dispose() {
-    _recognizer?.cancel();
+    _recognizer?.cancel().catchError((Object e) {
+      debugPrint('Error cancelando el reconocimiento de voz: $e');
+    });
     _descriptionController.dispose();
     _amountController.dispose();
     _notesController.dispose();
@@ -134,7 +136,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
-    final failure = await _speech.initialize();
+    SpeechFailure? failure;
+    try {
+      failure = await _speech.initialize();
+    } catch (e) {
+      // p. ej. MissingPluginException si la app no se recompiló tras agregar
+      // el plugin nativo
+      debugPrint('Error inicializando el reconocimiento de voz: $e');
+      failure = SpeechFailure.unavailable;
+    }
     if (!mounted) return;
     if (failure != null) {
       _showMessage(_failureMessage(failure));
@@ -145,21 +155,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _isListening = true;
       _transcript = '';
     });
-    await _speech.start(
-      onResult: (text, isFinal) {
-        if (!mounted) return;
-        setState(() => _transcript = text);
-        if (isFinal) _applyTranscript(text);
-      },
-      onDone: () {
-        if (mounted && _isListening) setState(() => _isListening = false);
-      },
-      onError: (failure) {
-        if (!mounted) return;
-        setState(() => _isListening = false);
-        _showMessage(_failureMessage(failure));
-      },
-    );
+    try {
+      await _speech.start(
+        onResult: (text, isFinal) {
+          if (!mounted) return;
+          setState(() => _transcript = text);
+          if (isFinal) _applyTranscript(text);
+        },
+        onDone: () {
+          if (mounted && _isListening) setState(() => _isListening = false);
+        },
+        onError: (failure) {
+          if (!mounted) return;
+          setState(() => _isListening = false);
+          _showMessage(_failureMessage(failure));
+        },
+      );
+    } catch (e) {
+      debugPrint('Error al empezar a escuchar: $e');
+      if (!mounted) return;
+      setState(() => _isListening = false);
+      _showMessage(_failureMessage(SpeechFailure.failed));
+    }
   }
 
   /// Número como texto editable, con a lo sumo 2 decimales (así `parseAmount`
