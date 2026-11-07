@@ -21,6 +21,7 @@ Supabase `car_transactions` (antes `incomes`). Migración: `docs/SUPABASE_TRANSA
 |---|---|
 | Acceso a datos | `TransactionRepository` + `SupabaseTransactionRepository` (`lib/services/transaction_repository.dart`) sobre `DatabaseHelper.*Transaction*` |
 | Estado | `TransactionProvider` (`lib/providers/transaction_provider.dart`): `loadByCar`, `add`, `update`, `delete` (recarga el auto seleccionado) |
+| Registro por voz | ver skill `voice-transactions` |
 | Registro | `AddTransactionScreen` (`lib/screens/add_transaction_screen.dart`) y `TransactionModalHelper.showAddTransactionModal(context, {carId, initialType})` |
 | Finanzas | `FinancesListScreen` (tab "Finanzas": balance/ingresos/egresos por vehículo), `CarFinancesScreen` (`/car-incomes?carId=`, historial + resumen) |
 | Detalle de vehículo | tabs "Movimientos" y "Gráficos" (ver skill `car-detail`) |
@@ -51,7 +52,6 @@ egresos por categoría). Funciones puras, `now` inyectable.
 `test/widgets/finances_list_screen_test.dart`.
 
 ## Pendiente
-- Registro por voz (STT del dispositivo + parser local; IA más adelante) reutilizando `parseAmount` y `CarTransaction`.
 - Recomendaciones de mantenimiento basadas en el historial (usa egresos de mantenimiento/combustible y `odometerKm`).
 - Editar/eliminar un movimiento desde la UI (el provider ya soporta `update`/`delete`).
 - Enlazar egresos de mantenimiento con `MaintenanceLog` y guardar el odómetro como lectura de kilometraje.

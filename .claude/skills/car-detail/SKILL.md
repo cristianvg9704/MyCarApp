@@ -18,7 +18,7 @@ Ruta: `/car-detail?carId=<uuid>` → `CarDetailScreen` (`lib/screens/car_detail_
 | Gráficos | `CarChartsTab` | `List<CarTransaction>`, `isLoading`; período 7/30/todos; ingresos, egresos, balance, barras por día y egresos por categoría |
 | Kilometraje | `CarMileageTab` (`lib/widgets/car_mileage_tab.dart`) | usa `MileageProvider` y `TripProvider` |
 
-El menú ⋮ del AppBar ofrece Editar (`VehicleModalHelper.showEditVehicleModal`) y Eliminar (`CarProvider.deleteCar`).
+El AppBar tiene un micrófono (registro por voz, skill `voice-transactions`) y el menú ⋮ ofrece Editar (`VehicleModalHelper.showEditVehicleModal`) y Eliminar (`CarProvider.deleteCar`).
 
 ## Carga de datos
 La pantalla carga el `Car` y luego sus movimientos (`DatabaseHelper.getCar`, `getTransactionsByCar`).
@@ -32,5 +32,4 @@ Ver skill `transactions` (`transaction_chart_utils.dart`, `currency_formatter.da
 - `test/utils/transaction_chart_utils_test.dart`: agrupación, resumen y límites de períodos.
 
 ## Pendiente / próximos cambios
-- Registro por voz con el vehículo en contexto.
 - Botón para registrar un movimiento desde el detalle del vehículo.

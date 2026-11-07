@@ -6,6 +6,8 @@ import '../config/supabase_config.dart';
 import '../models/car_transaction.dart';
 import '../providers/car_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../services/speech_recognizer.dart';
+import '../services/voice_transaction_parser.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/form_decoration.dart';
 import '../utils/my_car_colors.dart';
@@ -20,12 +22,21 @@ class AddTransactionScreen extends StatefulWidget {
   /// Devuelve el id del usuario autenticado. Inyectable para tests.
   final String? Function()? currentUserId;
 
+  /// Reconocimiento de voz. Por defecto usa el del dispositivo; inyectable
+  /// para tests.
+  final SpeechRecognizer? speechRecognizer;
+
+  /// Empieza a escuchar apenas se abre el formulario.
+  final bool startWithVoice;
+
   const AddTransactionScreen({
     super.key,
     this.initialCarId,
     this.initialType = TransactionType.income,
     this.inModal = false,
     this.currentUserId,
+    this.speechRecognizer,
+    this.startWithVoice = false,
   });
 
   @override
@@ -46,6 +57,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   bool _hasLoadedCars = false;
   bool _isSaving = false;
 
+  SpeechRecognizer? _recognizer;
+  bool _isListening = false;
+  String _transcript = '';
+
+  SpeechRecognizer get _speech =>
+      _recognizer ??= widget.speechRecognizer ?? DeviceSpeechRecognizer();
+
   bool get _isExpense => _type == TransactionType.expense;
   bool get _isFuel => _isExpense && _category == TransactionCategory.fuel;
   bool get _isMaintenance =>
@@ -59,6 +77,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   void initState() {
     super.initState();
     _selectedCarId = widget.initialCarId;
+    if (widget.startWithVoice) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _toggleVoice();
+      });
+    }
   }
 
   @override
@@ -85,12 +108,96 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   void dispose() {
+    _recognizer?.cancel();
     _descriptionController.dispose();
     _amountController.dispose();
     _notesController.dispose();
     _litersController.dispose();
     _odometerController.dispose();
     super.dispose();
+  }
+
+  String _failureMessage(SpeechFailure failure) {
+    switch (failure) {
+      case SpeechFailure.permissionDenied:
+        return 'Activa el micrófono y el reconocimiento de voz para MyCar en Ajustes.';
+      case SpeechFailure.unavailable:
+        return 'Este dispositivo no tiene reconocimiento de voz disponible.';
+      case SpeechFailure.failed:
+        return 'No se pudo reconocer la voz. Intenta de nuevo.';
+    }
+  }
+
+  Future<void> _toggleVoice() async {
+    if (_isListening) {
+      await _speech.stop();
+      return;
+    }
+
+    final failure = await _speech.initialize();
+    if (!mounted) return;
+    if (failure != null) {
+      _showMessage(_failureMessage(failure));
+      return;
+    }
+
+    setState(() {
+      _isListening = true;
+      _transcript = '';
+    });
+    await _speech.start(
+      onResult: (text, isFinal) {
+        if (!mounted) return;
+        setState(() => _transcript = text);
+        if (isFinal) _applyTranscript(text);
+      },
+      onDone: () {
+        if (mounted && _isListening) setState(() => _isListening = false);
+      },
+      onError: (failure) {
+        if (!mounted) return;
+        setState(() => _isListening = false);
+        _showMessage(_failureMessage(failure));
+      },
+    );
+  }
+
+  /// Número como texto editable, con a lo sumo 2 decimales (así `parseAmount`
+  /// nunca lo confunde con un separador de miles).
+  String _plainNumber(double value) {
+    final text = value.toStringAsFixed(2);
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+
+  /// Vuelca lo que se entendió en el formulario; el usuario lo revisa y pulsa
+  /// Guardar.
+  void _applyTranscript(String text) {
+    if (text.trim().isEmpty) {
+      setState(() => _isListening = false);
+      _showMessage('No te escuché. Intenta de nuevo.');
+      return;
+    }
+
+    final draft = VoiceTransactionParser.parse(text, defaultType: _type);
+    setState(() {
+      _isListening = false;
+      _type = draft.type;
+      if (draft.category != null) _category = draft.category!;
+      _descriptionController.text = draft.description;
+      _amountController.text = draft.amount == null
+          ? ''
+          : _plainNumber(draft.amount!);
+      _selectedDate = draft.date;
+      _litersController.text = draft.liters == null
+          ? ''
+          : _plainNumber(draft.liters!);
+      _odometerController.text = draft.odometerKm == null
+          ? ''
+          : _plainNumber(draft.odometerKm!);
+    });
+    if (!draft.hasAmount) {
+      _showMessage('No entendí el monto. Ingrésalo manualmente.');
+    }
   }
 
   Future<void> _selectDate() async {
@@ -106,9 +213,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _save() async {
@@ -203,11 +310,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             children: [
               const Text(
                 'No hay vehículos registrados',
-                style: TextStyle(color: MyCarColors.textSecondary, fontSize: 15),
+                style: TextStyle(
+                  color: MyCarColors.textSecondary,
+                  fontSize: 15,
+                ),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => VehicleModalHelper.showAddVehicleModal(context),
+                onPressed: () =>
+                    VehicleModalHelper.showAddVehicleModal(context),
                 icon: const Icon(Icons.add, size: 20),
                 label: const Text('Agregar Vehículo'),
                 style: FilledButton.styleFrom(
@@ -248,6 +359,55 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               value == null ? 'Por favor selecciona un vehículo' : null,
         );
       },
+    );
+  }
+
+  Widget _buildVoiceSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton.tonalIcon(
+          onPressed: _toggleVoice,
+          icon: Icon(
+            _isListening ? Icons.stop_circle_outlined : Icons.mic_none_rounded,
+          ),
+          label: Text(
+            _isListening
+                ? 'Escuchando… toca para terminar'
+                : 'Registrar por voz',
+          ),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
+        if (_transcript.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: MyCarColors.primaryLight.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '“$_transcript”',
+                style: const TextStyle(
+                  color: MyCarColors.textPrimary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          )
+        else if (!_isListening)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Ej: "gasté cincuenta mil en gasolina ayer"',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: MyCarColors.textTertiary, fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 
@@ -356,6 +516,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildVoiceSection(),
+                gap,
                 _buildTypeSelector(),
                 gap,
                 _buildCarSelector(),
@@ -368,8 +530,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     hint: _isExpense ? 'Ej: Tanqueo' : 'Ej: Servicio de taxi',
                   ),
                   style: myCarInputTextStyle,
-                  validator: (value) => !_isExpense &&
-                          (value == null || value.trim().isEmpty)
+                  validator: (value) =>
+                      !_isExpense && (value == null || value.trim().isEmpty)
                       ? 'Por favor ingresa una descripción'
                       : null,
                 ),

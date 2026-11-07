@@ -6,6 +6,7 @@ import '../models/car_transaction.dart';
 import '../services/database_helper.dart';
 import '../providers/car_provider.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/transaction_modal_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
 import '../widgets/car_detail/car_charts_tab.dart';
 import '../widgets/car_detail/car_transactions_tab.dart';
@@ -43,8 +44,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   CarLoader get _loadCarData =>
       widget.carLoader ?? DatabaseHelper.instance.getCar;
   TransactionsLoader get _loadTransactionsData =>
-      widget.transactionsLoader ??
-      DatabaseHelper.instance.getTransactionsByCar;
+      widget.transactionsLoader ?? DatabaseHelper.instance.getTransactionsByCar;
 
   @override
   void initState() {
@@ -143,6 +143,23 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     if (success == true && mounted) _loadCar();
   }
 
+  Future<void> _addByVoice() async {
+    final carId = _car?.id;
+    if (carId == null) return;
+    final saved = await TransactionModalHelper.showAddTransactionModal(
+      context,
+      carId: carId,
+      startWithVoice: true,
+    );
+    if (saved == true && mounted) _loadTransactions();
+  }
+
+  Widget _buildVoiceAction() => IconButton(
+    icon: const Icon(Icons.mic_none_rounded, color: MyCarColors.primary),
+    tooltip: 'Registrar por voz',
+    onPressed: _addByVoice,
+  );
+
   Widget _backButton() => IconButton(
     icon: const Icon(Icons.arrow_back),
     onPressed: () {
@@ -185,7 +202,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
         appBar: AppBar(
           leading: _backButton(),
           title: _title('${car.brand} ${car.model}'),
-          actions: [_buildMenu()],
+          actions: [_buildVoiceAction(), _buildMenu()],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Detalle'),
@@ -245,11 +262,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 72,
-              color: MyCarColors.error,
-            ),
+            const Icon(Icons.error_outline, size: 72, color: MyCarColors.error),
             const SizedBox(height: 24),
             Text(
               'Vehículo no encontrado',

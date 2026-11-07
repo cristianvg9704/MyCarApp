@@ -82,9 +82,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Toyota Corolla'), findsOneWidget);
-      for (final label in ['Detalle', 'Movimientos', 'Gráficos', 'Kilometraje']) {
+      for (final label in [
+        'Detalle',
+        'Movimientos',
+        'Gráficos',
+        'Kilometraje',
+      ]) {
         expect(find.widgetWithText(Tab, label), findsOneWidget);
       }
+    });
+
+    testWidgets('offers a mic action to register by voice', (tester) async {
+      await tester.pumpWidget(buildScreen());
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Registrar por voz'), findsOneWidget);
     });
 
     testWidgets('Detalle tab is selected first and shows only car info', (
@@ -149,7 +161,9 @@ void main() {
       expect(find.text('No hay movimientos'), findsOneWidget);
     });
 
-    testWidgets('Gráficos tab shows period selector and totals', (tester) async {
+    testWidgets('Gráficos tab shows period selector and totals', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildScreen());
       await tester.pumpAndSettle();
 

@@ -24,6 +24,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MyCar usa el micrófono para registrar ingresos y egresos con tu voz.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>MyCar usa el reconocimiento de voz para convertir lo que dices en un ingreso o egreso.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

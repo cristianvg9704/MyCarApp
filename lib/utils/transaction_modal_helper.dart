@@ -10,11 +10,12 @@ class TransactionModalHelper {
     BuildContext context, {
     String? carId,
     TransactionType initialType = TransactionType.income,
+    bool startWithVoice = false,
   }) {
     // Guardar una referencia al contexto original para usar después
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final carProvider = Provider.of<CarProvider>(context, listen: false);
-    
+
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -51,10 +52,11 @@ class TransactionModalHelper {
                   children: [
                     Text(
                       'Registrar Movimiento',
-                      style: Theme.of(modalContext).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.3,
-                      ),
+                      style: Theme.of(modalContext).textTheme.titleLarge
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.3,
+                          ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -71,6 +73,7 @@ class TransactionModalHelper {
                   child: AddTransactionScreen(
                     initialCarId: carId,
                     initialType: initialType,
+                    startWithVoice: startWithVoice,
                     inModal: true,
                   ),
                 ),

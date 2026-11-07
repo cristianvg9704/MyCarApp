@@ -368,6 +368,22 @@ class FinancesListScreen extends StatelessWidget {
                                 ),
                               ),
                               IconButton(
+                                icon: const Icon(
+                                  Icons.mic_none_rounded,
+                                  color: MyCarColors.primary,
+                                ),
+                                onPressed: () {
+                                  if (car.id != null) {
+                                    TransactionModalHelper.showAddTransactionModal(
+                                      context,
+                                      carId: car.id!,
+                                      startWithVoice: true,
+                                    );
+                                  }
+                                },
+                                tooltip: 'Registrar por voz',
+                              ),
+                              IconButton(
                                 icon: Icon(
                                   Icons.history_rounded,
                                   color: MyCarColors.textTertiary,
