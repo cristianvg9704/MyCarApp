@@ -16,7 +16,7 @@ Ruta: `/car-detail?carId=<uuid>` → `CarDetailScreen` (`lib/screens/car_detail_
 | Detalle | `CarInfoTab` (`lib/widgets/car_detail/car_info_tab.dart`) | `Car` (imagen, año, placa, color, compra, notas) |
 | Movimientos | `CarTransactionsTab` | `List<CarTransaction>`, `isLoading`; filtro Todos/Ingresos/Egresos |
 | Gráficos | `CarChartsTab` | `List<CarTransaction>`, `isLoading`; período 7/30/todos; ingresos, egresos, balance, barras por día y egresos por categoría |
-| Kilometraje | `CarMileageTab` (`lib/widgets/car_mileage_tab.dart`) | usa `MileageProvider` y `TripProvider` |
+| Kilometraje | `CarMileageTab` (`lib/widgets/car_mileage_tab.dart`) | usa `MileageProvider` y `TripProvider`; recomendaciones desde el historial (skill `maintenance-recommendations`) |
 
 El AppBar tiene un micrófono (registro por voz, skill `voice-transactions`) y el menú ⋮ ofrece Editar (`VehicleModalHelper.showEditVehicleModal`) y Eliminar (`CarProvider.deleteCar`).
 
