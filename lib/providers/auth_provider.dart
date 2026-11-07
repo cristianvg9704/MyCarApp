@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 import '../services/account_service.dart';
+import '../services/social_auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final SupabaseClient _supabase = SupabaseConfig.client;
   final AccountService _accountService;
+  final SocialAuthService _socialAuth;
   bool _isLoading = false;
   String? _errorMessage;
 
-  AuthProvider({AccountService? accountService})
-    : _accountService = accountService ?? SupabaseAccountService();
+  AuthProvider({
+    AccountService? accountService,
+    SocialAuthService? socialAuthService,
+  }) : _accountService = accountService ?? SupabaseAccountService(),
+       _socialAuth = socialAuthService ?? DeviceSocialAuthService();
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -114,6 +119,36 @@ class AuthProvider extends ChangeNotifier {
       _setError(_getErrorMessage(e));
       _isLoading = false;
       notifyListeners();
+      return false;
+    }
+  }
+
+  /// Si el proveedor social se puede usar en este dispositivo (Apple solo en
+  /// iOS y macOS).
+  bool isSocialProviderAvailable(SocialProvider provider) =>
+      _socialAuth.isAvailable(provider);
+
+  /// Inicia sesión (o crea la cuenta) con Apple o Google. Devuelve true si
+  /// quedó una sesión abierta. Si el usuario cancela devuelve false sin dejar
+  /// mensaje de error; si falla, deja el motivo en [errorMessage].
+  Future<bool> signInWithSocial(SocialProvider provider) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await _socialAuth.signIn(provider);
+      _isLoading = false;
+      notifyListeners();
+      return result == SocialSignInResult.signedIn;
+    } on SocialAuthException catch (e) {
+      _isLoading = false;
+      _setError(e.message);
+      return false;
+    } catch (e) {
+      debugPrint('Error en inicio de sesión social: $e');
+      _isLoading = false;
+      _setError('No se pudo iniciar sesión. Intenta de nuevo.');
       return false;
     }
   }

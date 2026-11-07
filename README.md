@@ -133,6 +133,8 @@ En VS Code hay tareas en `.vscode/tasks.json` (**Tasks: Run Task → Test: …**
 
 ## Servicios que requieren configuración
 
+- **Iniciar sesión con Apple y Google:** requiere configuración en Apple Developer, Google Cloud y Supabase; los
+  client IDs de Google se pasan con `--dart-define`. Ver [docs/SOCIAL_AUTH_SETUP.md](docs/SOCIAL_AUTH_SETUP.md).
 - **Notificaciones push (Firebase):** iOS usa `ios/Runner/GoogleService-Info.plist`. En Android falta
   `android/app/google-services.json` y aplicar el plugin de Google Services; mientras tanto la inicialización de FCM
   falla de forma controlada y el resto de la app funciona.

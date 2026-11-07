@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/social_auth_service.dart';
+import '../../utils/auth_navigation.dart';
+import '../../widgets/social_auth_buttons.dart';
 import '../../utils/my_car_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -55,6 +58,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _handleSocial(SocialProvider provider) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signInWithSocial(provider);
+    if (!mounted) return;
+
+    if (success) {
+      await goAfterSignIn(context);
+    } else if (authProvider.errorMessage != null) {
+      // Sin mensaje = el usuario canceló: no se muestra nada
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: MyCarColors.error,
+        ),
+      );
     }
   }
 
@@ -424,6 +445,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                     );
                   },
+                ),
+                const SizedBox(height: 24),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) => SocialAuthButtons(
+                    showApple: authProvider.isSocialProviderAvailable(
+                      SocialProvider.apple,
+                    ),
+                    enabled: !authProvider.isLoading,
+                    onPressed: _handleSocial,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 // Login link

@@ -34,4 +34,5 @@ Si se agrega una tabla nueva con `user_id`, debe referenciar `auth.users ON DELE
 
 ## Pendiente
 - Cancelar la suscripción no es posible desde la app (lo hace el usuario en la tienda); solo se avisa.
-- Si se agrega inicio de sesión con terceros (Google/Apple), revisar que la eliminación también revoque esos tokens.
+- Usuarios que entraron con Apple (skill `social-auth`): Apple exige revocar su token al eliminar la cuenta; hoy no se hace
+  (requiere una Edge Function con la clave `.p8`). Ver `docs/SOCIAL_AUTH_SETUP.md`.
