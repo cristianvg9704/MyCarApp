@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../services/subscription_service.dart';
 import '../utils/my_car_colors.dart';
+import '../widgets/delete_account_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +17,44 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedLanguage = 'Español';
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await DeleteAccountDialog.show(context);
+    if (!confirmed || !mounted) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+
+    final deleted = await authProvider.deleteAccount();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // cierra el progreso
+
+    if (deleted) {
+      router.go('/login');
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Tu cuenta fue eliminada')),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            authProvider.errorMessage ?? 'No se pudo eliminar la cuenta',
+          ),
+          backgroundColor: MyCarColors.error,
+        ),
+      );
+    }
+  }
 
   void _showLanguageDialog() {
     showDialog(
@@ -357,6 +396,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
               }
             },
+          ),
+          const SizedBox(height: 12),
+          _buildSettingCard(
+            context,
+            icon: Icons.delete_forever,
+            title: 'Eliminar cuenta',
+            subtitle: 'Borrar tu cuenta y todos tus datos',
+            colorScheme: colorScheme,
+            iconColor: MyCarColors.error,
+            onTap: _deleteAccount,
           ),
         ],
       ),
