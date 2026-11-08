@@ -1,0 +1,14 @@
+# Genera los iconos de la app (iOS y Android) a partir de assets/icons/.
+# Regenerar tras cambiar las imágenes:  dart run flutter_launcher_icons
+flutter_launcher_icons:
+  # iOS y Android (icono clásico para Android < 8)
+  ios: true
+  android: true
+  image_path: "assets/icons/mcIcon.png"
+  # iOS no admite transparencia en el icono
+  remove_alpha_ios: true
+  # Android 8+ (adaptive icon): fondo indigo de marca (MyCarColors.primary) + coche en primer plano
+  adaptive_icon_background: "#4F46E5"
+  adaptive_icon_foreground: "assets/icons/foreground.png"
+  # El foreground ya trae su propio margen: sin recorte extra (el valor por defecto es 16)
+  adaptive_icon_foreground_inset: 0
