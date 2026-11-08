@@ -51,6 +51,15 @@ egresos por categoría). Funciones puras, `now` inyectable.
 `test/widgets/add_transaction_screen_test.dart`, `test/widgets/car_detail_screen_test.dart`,
 `test/widgets/finances_list_screen_test.dart`.
 
+## Carga de vehículos en Finanzas
+- `FinancesListScreen` pide la carga inicial **una sola vez** en `initState` y solo si
+  `CarProvider.hasLoaded` es falso (la app ya carga los vehículos al iniciar).
+- Nunca decidir la carga con `cars.isEmpty` ni dentro de `build()`: un usuario sin vehículos tiene la lista
+  vacía *después* de cargar, y re-pedirla en cada rebuild provocaba un bucle (spinner ↔ estado vacío) que
+  impedía tocar "Agregar Vehículo". Tras un error no se reintenta solo: el usuario usa "Reintentar".
+- `CarProvider({fetchCars})` es inyectable para probar sin Supabase; `hasLoaded` queda en true al terminar
+  la primera carga (con o sin error).
+
 ## Pendiente
 - Recomendaciones de mantenimiento basadas en el historial (usa egresos de mantenimiento/combustible y `odometerKm`).
 - Editar/eliminar un movimiento desde la UI (el provider ya soporta `update`/`delete`).

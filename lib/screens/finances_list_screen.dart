@@ -10,10 +10,33 @@ import '../utils/transaction_modal_helper.dart';
 import '../utils/vehicle_image_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
 
-class FinancesListScreen extends StatelessWidget {
+class FinancesListScreen extends StatefulWidget {
   final TransactionRepository? repository;
 
   const FinancesListScreen({super.key, this.repository});
+
+  @override
+  State<FinancesListScreen> createState() => _FinancesListScreenState();
+}
+
+class _FinancesListScreenState extends State<FinancesListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Carga inicial de vehículos: una sola vez y solo si nadie la ha hecho
+    // (la app ya los carga al iniciar). Se decide con `hasLoaded` y no con
+    // `cars.isEmpty`: un usuario sin vehículos tiene la lista vacía *después*
+    // de cargar, y volver a pedirla desde build() causaba un bucle infinito
+    // (spinner -> vacío -> spinner...) que impedía tocar "Agregar Vehículo".
+    // Tras un error tampoco se reintenta solo: el usuario usa "Reintentar".
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final carProvider = context.read<CarProvider>();
+      if (!carProvider.hasLoaded && !carProvider.isLoading) {
+        carProvider.loadCars();
+      }
+    });
+  }
 
   Widget _buildCarThumbnail(String? imageBase64) {
     const fallback = Icon(Icons.directions_car, color: Colors.white, size: 28);
@@ -38,7 +61,7 @@ class FinancesListScreen extends StatelessWidget {
     );
     if (carId == null || carId.isEmpty) return empty;
     try {
-      final repo = repository ?? SupabaseTransactionRepository();
+      final repo = widget.repository ?? SupabaseTransactionRepository();
       return TransactionSummary.of(await repo.getByCar(carId));
     } catch (e) {
       debugPrint('Error getting car summary: $e');
@@ -83,17 +106,6 @@ class FinancesListScreen extends StatelessWidget {
       ),
       body: Consumer<CarProvider>(
         builder: (context, carProvider, child) {
-          // Cargar vehículos si no están cargados. No reintentar automáticamente
-          // tras un error: eso causaría un loop de reintentos en cada rebuild;
-          // el usuario reintenta explícitamente con el botón "Reintentar".
-          if (!carProvider.isLoading &&
-              carProvider.cars.isEmpty &&
-              carProvider.errorMessage == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              carProvider.loadCars();
-            });
-          }
-
           if (carProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
