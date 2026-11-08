@@ -32,11 +32,13 @@ import 'providers/subscription_provider.dart';
 import 'providers/mileage_provider.dart';
 import 'providers/trip_provider.dart';
 import 'utils/app_theme.dart';
+import 'widgets/config_error_app.dart';
 import 'utils/transaction_modal_helper.dart';
 import 'services/database_helper.dart';
 import 'services/notification_service.dart';
 import 'services/push_notification_service.dart';
 import 'services/subscription_service.dart';
+import 'config/app_env.dart';
 import 'config/supabase_config.dart';
 import 'config/app_config.dart';
 
@@ -57,13 +59,22 @@ void main() async {
   // Configurar captura básica de errores antes de runApp
   _setupBasicErrorHandling();
 
+  // Sin las claves del .env nada funciona (login, datos): mostrar qué falta en
+  // vez de arrancar la app y fallar después con un error difícil de entender.
+  final missingConfig = SupabaseConfig.missingVariables();
+  if (missingConfig.isNotEmpty) {
+    debugPrint('🚨 ${AppEnv.missingMessage(missingConfig)}');
+    runApp(ConfigErrorApp(missing: missingConfig));
+    return;
+  }
+
   // Inicializar Supabase
   try {
     await SupabaseConfig.initialize();
     print('✅ Supabase inicializado correctamente');
   } catch (e) {
     print('⚠️ Error al inicializar Supabase: $e');
-    print('⚠️ Asegúrate de configurar las credenciales en lib/config/supabase_config.dart');
+    print('⚠️ Verifica SUPABASE_URL y SUPABASE_ANON_KEY en .env');
   }
 
   // Inicializar servicio de notificaciones
@@ -124,7 +135,7 @@ Future<void> _initializeDatabase() async {
       print('⚠️ Verifica:');
       print('   1. Tu conexión a internet');
       print('   2. Que el proyecto de Supabase esté activo');
-      print('   3. Que la URL en lib/config/supabase_config.dart sea correcta');
+      print('   3. Que SUPABASE_URL en .env sea correcta');
       print('   4. Que el proyecto Supabase no haya sido pausado o eliminado');
       // No lanzar el error, permitir que la app continúe
       return;

@@ -24,6 +24,19 @@ void main() {
     });
   });
 
+  group('SupabaseConfig.missingVariables', () {
+    test('reports both variables when nothing is defined', () {
+      expect(SupabaseConfig.missingVariables(url: '', anonKey: ''), [
+        'SUPABASE_URL',
+        'SUPABASE_ANON_KEY',
+      ]);
+    });
+
+    test('is empty when both are defined', () {
+      expect(SupabaseConfig.missingVariables(url: 'u', anonKey: 'k'), isEmpty);
+    });
+  });
+
   group('SupabaseConfig.initialize', () {
     test('fails with a clear message when the URL is missing', () {
       expect(

@@ -5,17 +5,20 @@ class SupabaseConfig {
   static const String supabaseUrl = AppEnv.supabaseUrl;
   static const String supabaseAnonKey = AppEnv.supabaseAnonKey;
 
+  /// Variables de Supabase que no llegaron (vacío = todo configurado).
   /// [url] y [anonKey] se pueden sustituir (por defecto vienen del `.env`).
-  /// Lanza un [StateError] claro si falta alguno, en vez de fallar después con
-  /// un error de red difícil de interpretar.
+  static List<String> missingVariables({
+    String url = supabaseUrl,
+    String anonKey = supabaseAnonKey,
+  }) => AppEnv.missing({'SUPABASE_URL': url, 'SUPABASE_ANON_KEY': anonKey});
+
+  /// Lanza un [StateError] claro si falta alguna variable, en vez de fallar
+  /// después con un error de red difícil de interpretar.
   static Future<void> initialize({
     String url = supabaseUrl,
     String anonKey = supabaseAnonKey,
   }) async {
-    final missing = AppEnv.missing({
-      'SUPABASE_URL': url,
-      'SUPABASE_ANON_KEY': anonKey,
-    });
+    final missing = missingVariables(url: url, anonKey: anonKey);
     if (missing.isNotEmpty) {
       throw StateError(AppEnv.missingMessage(missing));
     }

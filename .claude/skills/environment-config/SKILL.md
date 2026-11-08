@@ -32,8 +32,10 @@ versionada en `.env.example`) y se inyectan al compilar con `--dart-define-from-
 ## Cómo se usa
 - Ejecutar: `flutter run --dart-define-from-file=.env`. Release: `flutter build ios --release --dart-define-from-file=.env`
   (e instalar con `flutter install`). En VS Code las configuraciones de `launch.json` ya lo incluyen.
-- Sin el flag la app arranca pero `SupabaseConfig.initialize` falla con `Falta configuración: …`.
+- Sin el flag, `main()` detecta las variables faltantes (`SupabaseConfig.missingVariables`) y muestra `ConfigErrorApp`
+  (`lib/widgets/config_error_app.dart`): qué variables faltan y el comando correcto. Antes la app arrancaba y fallaba
+  con `Tried to read a provider that threw… Supabase.instance`.
 
 ## Cómo se prueba
-`flutter test test/config/app_env_test.dart` (variables faltantes y error claro de Supabase). Manual: ejecutar con el
+`flutter test test/config/app_env_test.dart test/widgets/config_error_app_test.dart` (variables faltantes, error claro de Supabase y pantalla de configuración). Manual: ejecutar con el
 flag y comprobar `✅ Supabase inicializado correctamente`; sin el flag, el aviso de configuración.
