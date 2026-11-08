@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:new_my_car_app/providers/car_provider.dart';
+import 'package:new_my_car_app/models/car.dart';
 
 void main() {
   group('CarProvider Tests', () {
@@ -24,33 +25,88 @@ void main() {
       expect(provider.cars, isEmpty);
     });
 
-    test('loadCars should set errorMessage when it fails to reach the backend', () async {
-      final provider = CarProvider();
+    test(
+      'loadCars should set errorMessage when it fails to reach the backend',
+      () async {
+        final provider = CarProvider();
 
-      await provider.loadCars();
+        await provider.loadCars();
 
-      expect(provider.errorMessage, isNotNull);
+        expect(provider.errorMessage, isNotNull);
+      },
+    );
+
+    test(
+      'loadCars should clear a previous errorMessage at the start of a new attempt',
+      () async {
+        final provider = CarProvider();
+        await provider.loadCars();
+        expect(provider.errorMessage, isNotNull);
+
+        final retryFuture = provider.loadCars();
+        expect(provider.errorMessage, isNull);
+
+        await retryFuture;
+      },
+    );
+
+    test(
+      'loadCars should notify listeners on start and on completion',
+      () async {
+        final provider = CarProvider();
+        var notifications = 0;
+        provider.addListener(() => notifications++);
+
+        await provider.loadCars();
+
+        expect(notifications, greaterThanOrEqualTo(2));
+      },
+    );
+  });
+  group('CarProvider.hasLoaded', () {
+    test('empieza en false: aún no se ha cargado nada', () {
+      expect(CarProvider(fetchCars: () async => <Car>[]).hasLoaded, isFalse);
     });
 
-    test('loadCars should clear a previous errorMessage at the start of a new attempt', () async {
-      final provider = CarProvider();
-      await provider.loadCars();
-      expect(provider.errorMessage, isNotNull);
+    test('es true tras cargar aunque no haya vehículos', () async {
+      final provider = CarProvider(fetchCars: () async => <Car>[]);
 
-      final retryFuture = provider.loadCars();
+      await provider.loadCars();
+
+      expect(provider.cars, isEmpty);
+      expect(provider.hasLoaded, isTrue);
       expect(provider.errorMessage, isNull);
-
-      await retryFuture;
     });
 
-    test('loadCars should notify listeners on start and on completion', () async {
-      final provider = CarProvider();
-      var notifications = 0;
-      provider.addListener(() => notifications++);
+    test('es true tras un error de carga y deja el mensaje de error', () async {
+      final provider = CarProvider(fetchCars: () async => throw Exception('x'));
 
       await provider.loadCars();
 
-      expect(notifications, greaterThanOrEqualTo(2));
+      expect(provider.hasLoaded, isTrue);
+      expect(provider.errorMessage, isNotNull);
+    });
+
+    test('sigue en false mientras la primera carga está en curso', () async {
+      final provider = CarProvider(fetchCars: () async => <Car>[]);
+
+      final future = provider.loadCars();
+      expect(provider.isLoading, isTrue);
+      expect(provider.hasLoaded, isFalse);
+
+      await future;
+    });
+
+    test('usa los vehículos que devuelve fetchCars', () async {
+      final provider = CarProvider(
+        fetchCars: () async => [
+          Car(id: 'c1', userId: 'u1', brand: 'Mazda', model: '3', year: 2020),
+        ],
+      );
+
+      await provider.loadCars();
+
+      expect(provider.cars.single.brand, 'Mazda');
     });
   });
 }
