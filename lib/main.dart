@@ -35,6 +35,7 @@ import 'utils/app_theme.dart';
 import 'utils/transaction_modal_helper.dart';
 import 'services/database_helper.dart';
 import 'services/notification_service.dart';
+import 'services/push_notification_service.dart';
 import 'services/subscription_service.dart';
 import 'config/supabase_config.dart';
 import 'config/app_config.dart';
@@ -72,6 +73,18 @@ void main() async {
     print('✅ Servicio de notificaciones inicializado correctamente');
   } catch (e) {
     print('⚠️ Error al inicializar notificaciones: $e');
+  }
+
+  // Inicializar Firebase Cloud Messaging (push de novedades/noticias)
+  // Requiere google-services.json / GoogleService-Info.plist en el proyecto
+  // nativo - hasta que se agreguen, falla de forma controlada y el resto de
+  // la app sigue funcionando (igual que Supabase/RevenueCat arriba).
+  try {
+    await PushNotificationService.instance.initialize();
+    print('✅ Push notifications (FCM) inicializado correctamente');
+  } catch (e) {
+    print('⚠️ Error al inicializar FCM: $e');
+    print('⚠️ Verifica que google-services.json/GoogleService-Info.plist estén agregados al proyecto');
   }
 
   // Inicializar RevenueCat (SubscriptionService)

@@ -169,14 +169,10 @@ class NotificationService {
     // usando el payload que contiene el ID de la alerta
   }
 
-  /// Método de prueba: muestra una notificación inmediata
-  Future<void> showTestNotification() async {
-    if (!_initialized) {
-      await initialize();
-    }
-
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
+  /// Detalles por defecto para una notificación instantánea (no programada).
+  static const NotificationDetails _instantNotificationDetails =
+      NotificationDetails(
+        android: AndroidNotificationDetails(
           'alert_channel',
           'Alertas de Vehículos',
           channelDescription:
@@ -186,27 +182,82 @@ class NotificationService {
           showWhen: true,
           enableVibration: true,
           playSound: true,
-        );
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      );
 
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
+  /// Muestra una notificación local inmediata con el título/cuerpo dados.
+  Future<void> _showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    if (!_initialized) {
+      await initialize();
+    }
 
     await _notifications.show(
-      999999,
-      'Prueba de Notificación',
-      'Si ves esto, las notificaciones están funcionando correctamente',
-      notificationDetails,
+      id,
+      title,
+      body,
+      _instantNotificationDetails,
+      payload: payload,
     );
+  }
 
+  /// Método de prueba: muestra una notificación inmediata
+  Future<void> showTestNotification() async {
+    await _showInstantNotification(
+      id: 999999,
+      title: 'Prueba de Notificación',
+      body: 'Si ves esto, las notificaciones están funcionando correctamente',
+    );
     debugPrint('✅ Notificación de prueba mostrada');
+  }
+
+  /// Muestra localmente una notificación recibida desde un servidor push
+  /// (ej. Firebase Cloud Messaging) mientras la app está en primer plano.
+  ///
+  /// FCM no dispara el banner del sistema automáticamente en foreground en
+  /// Android, así que [PushNotificationService] reenvía aquí el contenido
+  /// del mensaje para reutilizar el mismo canal/estilo que el resto de
+  /// notificaciones locales de la app.
+  Future<void> showRemoteNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await _showInstantNotification(
+      // Basado en la hora actual: evita colisionar con IDs de alertas
+      // (que se derivan de alertId.hashCode) y con el ID fijo de bienvenida.
+      id: DateTime.now().millisecondsSinceEpoch.remainder(1000000) + 2,
+      title: title,
+      body: body,
+      payload: payload,
+    );
+    debugPrint('✅ Notificación remota (push) mostrada: $title');
+  }
+
+  /// Muestra la notificación de bienvenida justo después de un registro
+  /// exitoso. Se dispara localmente en el propio dispositivo (no depende de
+  /// ningún backend/push): el usuario ya está interactuando con la app en
+  /// ese momento, así que no hace falta un viaje ida y vuelta al servidor.
+  Future<void> showWelcomeNotification({String? userName}) async {
+    final greeting = (userName != null && userName.trim().isNotEmpty)
+        ? '¡Bienvenido, ${userName.trim()}! 🚗'
+        : '¡Bienvenido a MyCar! 🚗';
+
+    await _showInstantNotification(
+      id: 1, // ID fijo: no se acumulan bienvenidas repetidas por usuario.
+      title: greeting,
+      body: 'Ya puedes agregar tu primer vehículo y empezar a gestionarlo.',
+    );
+    debugPrint('✅ Notificación de bienvenida mostrada');
   }
 
   /// Genera un ID positivo y estable para notificaciones locales

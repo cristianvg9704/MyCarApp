@@ -8,7 +8,7 @@
 PRODUCT_NAME = new_my_car_app
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.newMyCarApp
+PRODUCT_BUNDLE_IDENTIFIER = com.cris.newMyCarApp
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.

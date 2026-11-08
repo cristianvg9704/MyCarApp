@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/notification_service.dart';
 import '../../utils/my_car_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -46,6 +47,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (mounted) {
       if (success) {
+        // Disparada localmente en el dispositivo: el registro ya es una
+        // interacción del usuario en curso, no requiere un push del servidor.
+        NotificationService.instance.showWelcomeNotification(
+          userName: _nameController.text.trim(),
+        );
         context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

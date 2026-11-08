@@ -327,8 +327,8 @@ class SubscriptionService {
   Future<bool> purchasePackage(Package package) async {
     _isLoading = true;
     try {
-      final customerInfo = await Purchases.purchasePackage(package);
-      await _updateSubscriptionTier(customerInfo);
+      final purchaseResult = await Purchases.purchasePackage(package);
+      await _updateSubscriptionTier(purchaseResult.customerInfo);
       _isLoading = false;
       return true;
     } on PlatformException catch (e) {
