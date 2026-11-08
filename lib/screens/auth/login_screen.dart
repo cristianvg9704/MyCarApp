@@ -252,9 +252,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: FilledButton.styleFrom(
                         backgroundColor: MyCarColors.primary,
                         foregroundColor: MyCarColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        // Mismo tamaño y esquinas que los botones de Apple/Google
+                        minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 0,
                       ),

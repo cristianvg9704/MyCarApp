@@ -12,6 +12,8 @@ la cuenta (Supabase crea el usuario la primera vez). La configuración externa (
 ## Flujo
 1. `SocialAuthButtons` (`lib/widgets/social_auth_buttons.dart`) muestra el separador y los botones. Apple usa el botón oficial
    (`SignInWithAppleButton`) y solo se ofrece donde existe (iOS/macOS); Google en iOS y Android.
+   Todos los botones de la pantalla de login (incluido "Iniciar sesión") miden 52 de alto con esquinas de 14;
+   si cambias uno, cambia los demás (lo cubre `login_screen_test.dart`).
 2. La pantalla llama `AuthProvider.signInWithSocial(provider)`.
 3. `AuthProvider` delega en `SocialAuthService` (inyectable: `AuthProvider(socialAuthService: ...)`).
 4. `DeviceSocialAuthService` (`lib/services/social_auth_service.dart`):

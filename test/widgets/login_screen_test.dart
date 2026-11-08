@@ -65,6 +65,23 @@ void main() {
       expect(find.text('Iniciar sesión'), findsOneWidget);
     });
 
+    testWidgets('login button has the same height as the social buttons', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildTestableLogin());
+      await tester.pumpAndSettle();
+
+      final login = find.widgetWithText(FilledButton, 'Iniciar sesión');
+      final google = find.widgetWithText(
+        OutlinedButton,
+        'Continuar con Google',
+      );
+      expect(login, findsOneWidget);
+      expect(google, findsOneWidget);
+      expect(tester.getSize(login).height, 52);
+      expect(tester.getSize(login).height, tester.getSize(google).height);
+    });
+
     testWidgets('should show validation errors when submitting an empty form', (
       WidgetTester tester,
     ) async {
