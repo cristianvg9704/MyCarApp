@@ -302,6 +302,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const SizedBox(height: 12),
+          // Solo con plan activo: cancelar se hace en la tienda, no en la app
+          Consumer<SubscriptionProvider>(
+            builder: (context, subscriptionProvider, child) {
+              if (!subscriptionProvider.isPremium) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildSettingCard(
+                  context,
+                  icon: Icons.manage_accounts_outlined,
+                  title: 'Administrar suscripción',
+                  subtitle: 'Cambia o cancela tu plan en la tienda',
+                  colorScheme: colorScheme,
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final opened = await subscriptionProvider
+                        .openManageSubscription();
+                    if (!opened) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'No se pudo abrir la administración de suscripciones. '
+                            'Hazlo desde los ajustes de tu cuenta en la tienda.',
+                          ),
+                          backgroundColor: MyCarColors.warning,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              );
+            },
+          ),
           Consumer<SubscriptionProvider>(
             builder: (context, subscriptionProvider, child) {
               return _buildSettingCard(

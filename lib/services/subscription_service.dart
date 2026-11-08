@@ -365,6 +365,18 @@ class SubscriptionService {
     await _loadSubscriptionStatus();
   }
 
+  /// URL de administración de la suscripción que entrega RevenueCat
+  /// (`null` si no hay compra activa o no se pudo consultar).
+  Future<String?> getManagementUrl() async {
+    try {
+      final customerInfo = await Purchases.getCustomerInfo();
+      return customerInfo.managementURL;
+    } catch (e) {
+      debugPrint('⚠️ No se pudo obtener la URL de administración: $e');
+      return null;
+    }
+  }
+
   Future<void> identifyUser(String userId) async {
     try {
       await Purchases.logIn(userId);

@@ -86,6 +86,9 @@ dependencies:
   # (PaywallColor.swift) on recent Xcode/Swift toolchains.
   purchases_flutter: ^10.13.1
 
+  # Open the store's subscription-management page
+  url_launcher: ^6.3.2
+
   # Voice input (on-device speech recognition)
   speech_to_text: ^7.5.0
 
