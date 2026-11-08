@@ -20,7 +20,9 @@ Apple exige una **URL pública** de la política (App Store Connect) y que ambos
   `alerts`, `maintenance_logs`) + metadata de usuario (nombre, teléfono).
 - **GPS**: las coordenadas se procesan en el dispositivo y no se envían; solo se guardan distancia, duración y horas
   (`TripLog`). Si se empiezan a guardar coordenadas o rutas, hay que cambiar política y etiqueta de privacidad de Apple.
-- Foto del vehículo se sube (`imageBase64`); la de perfil solo guarda la ruta local.
+- Foto del vehículo se sube (`imageBase64`); la de perfil solo guarda la ruta local. Cámara y fotos (`image_picker`) requieren
+  `NSCameraUsageDescription` y `NSPhotoLibraryUsageDescription` en `ios/Runner/Info.plist`; sin ellos iOS cierra la app
+  al abrir la cámara y App Store Connect puede rechazar el binario.
 - Voz: la procesa el reconocimiento del sistema; la app no recibe audio.
 - Proveedores: Supabase, RevenueCat, Firebase Cloud Messaging, Apple, Google. Un SDK nuevo (analítica, anuncios, Crashlytics)
   obliga a actualizar política y etiquetas de privacidad.
