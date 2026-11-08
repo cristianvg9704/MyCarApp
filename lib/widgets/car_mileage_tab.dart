@@ -7,6 +7,9 @@ import '../models/mileage_reading.dart';
 import '../models/trip_log.dart';
 import '../providers/mileage_provider.dart';
 import '../providers/trip_provider.dart';
+import '../services/maintenance_recommendation_service.dart';
+import '../services/usage_analytics.dart';
+import '../utils/currency_formatter.dart';
 import '../utils/my_car_colors.dart';
 
 class CarMileageTab extends StatefulWidget {
@@ -30,10 +33,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MileageProvider>().loadForCar(
-            widget.carId,
-            baselineDate: widget.purchaseDate,
-          );
+      context.read<MileageProvider>().loadForCar(widget.carId);
       context.read<TripProvider>().loadTripsForCar(widget.carId);
     });
   }
@@ -253,6 +253,115 @@ class _CarMileageTabState extends State<CarMileageTab> {
     );
   }
 
+  Future<void> _showAddServiceDialog(MileageProvider provider) async {
+    final odometerController = TextEditingController(
+      text: provider.currentOdometerKm?.toStringAsFixed(0) ?? '',
+    );
+    String serviceType =
+        MaintenanceRecommendationService.serviceTypeLabels.keys.first;
+    DateTime selectedDate = DateTime.now();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Registrar servicio'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: serviceType,
+                  decoration: const InputDecoration(labelText: 'Servicio *'),
+                  items: [
+                    for (final entry in MaintenanceRecommendationService
+                        .serviceTypeLabels
+                        .entries)
+                      DropdownMenuItem(
+                        value: entry.key,
+                        child: Text(entry.value),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => serviceType = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: odometerController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Odómetro al servicio (km) *',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Fecha del servicio'),
+                  subtitle: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setDialogState(() => selectedDate = picked);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true || !mounted) return;
+
+    final km = double.tryParse(odometerController.text.trim());
+    if (km == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ingresa un kilometraje válido')),
+      );
+      return;
+    }
+
+    final success = await provider.addMaintenanceLog(
+      carId: widget.carId,
+      serviceType: serviceType,
+      odometerKm: km,
+      serviceDate: selectedDate,
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? '${MaintenanceRecommendationService.labelFor(serviceType)} registrado'
+              : provider.errorMessage ?? 'Error al registrar servicio',
+        ),
+        backgroundColor: success ? MyCarColors.success : MyCarColors.error,
+      ),
+    );
+  }
+
   Future<void> _markAsDone(
     MileageProvider provider,
     MaintenanceRecommendation rec,
@@ -352,6 +461,10 @@ class _CarMileageTabState extends State<CarMileageTab> {
               _buildTripCard(context, tripProvider, provider),
               const SizedBox(height: 16),
               _buildSummaryCard(context, provider),
+              if (provider.insights.hasAnyData) ...[
+                const SizedBox(height: 16),
+                _buildInsightsCard(context, provider.insights),
+              ],
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -362,18 +475,34 @@ class _CarMileageTabState extends State<CarMileageTab> {
                           fontWeight: FontWeight.w600,
                         ),
                   ),
-                  TextButton.icon(
-                    onPressed: provider.isLoading
-                        ? null
-                        : () => _showAddReadingDialog(provider),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Registrar km'),
+                  Flexible(
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      children: [
+                        TextButton.icon(
+                          onPressed: provider.isLoading
+                              ? null
+                              : () => _showAddReadingDialog(provider),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Registrar km'),
+                        ),
+                        TextButton.icon(
+                          onPressed: provider.isLoading
+                              ? null
+                              : () => _showAddServiceDialog(provider),
+                          icon: const Icon(Icons.build_outlined, size: 18),
+                          label: const Text('Servicio'),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               if (provider.currentOdometerKm == null)
                 _buildEmptyState(context, provider)
+              else if (provider.recommendations.isEmpty)
+                _buildNoServicesState(context, provider)
               else
                 ...provider.recommendations.map(
                   (rec) => _buildRecommendationCard(context, provider, rec),
@@ -581,6 +710,104 @@ class _CarMileageTabState extends State<CarMileageTab> {
     );
   }
 
+  Widget _buildInsightsCard(BuildContext context, UsageInsights insights) {
+    final numberFormat = NumberFormat('#,##0');
+    final lines = <(IconData, String)>[
+      if (insights.kmPerDay != null)
+        (
+          Icons.trending_up,
+          'Uso: ${insights.kmPerDay!.toStringAsFixed(1)} km/día '
+              '(~${numberFormat.format(insights.kmPerMonth)} km/mes)',
+        ),
+      if (insights.fuelEfficiency != null)
+        (
+          Icons.local_gas_station_outlined,
+          'Rendimiento: ${insights.fuelEfficiency!.kmPerLiter.toStringAsFixed(1)} km/L '
+              '(${insights.fuelEfficiency!.samples} tanqueadas)',
+        ),
+      if (insights.costPerKm != null)
+        (
+          Icons.payments_outlined,
+          'Costo por km: ${CurrencyFormatter.format(insights.costPerKm!)}',
+        ),
+      if (insights.averageMaintenanceCost != null)
+        (
+          Icons.build_outlined,
+          'Mantenimiento promedio: '
+              '${CurrencyFormatter.format(insights.averageMaintenanceCost!)} '
+              '(${insights.maintenanceCount})',
+        ),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: MyCarColors.backgroundLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MyCarColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tu uso (según tu historial)',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 8),
+          for (final (icon, text) in lines)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  Icon(icon, size: 18, color: MyCarColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        color: MyCarColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoServicesState(BuildContext context, MileageProvider provider) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: MyCarColors.backgroundLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MyCarColors.border),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.build_outlined, size: 48, color: MyCarColors.textTertiary),
+          const SizedBox(height: 12),
+          const Text(
+            'Registra tus servicios (aceite, frenos, llantas...). Con dos '
+            'registros del mismo servicio calculamos tu intervalo real.',
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => _showAddServiceDialog(provider),
+            icon: const Icon(Icons.add),
+            label: const Text('Registrar servicio'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context, MileageProvider provider) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -594,7 +821,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
           Icon(Icons.speed, size: 48, color: MyCarColors.textTertiary),
           const SizedBox(height: 12),
           const Text(
-            'Registra el odómetro de tu vehículo para recibir recomendaciones de mantenimiento',
+            'Registra el odómetro y tus servicios para recibir recomendaciones basadas en tu propio historial',
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -617,9 +844,10 @@ class _CarMileageTabState extends State<CarMileageTab> {
       MaintenanceStatus.overdue => MyCarColors.error,
       MaintenanceStatus.soon => MyCarColors.warning,
       MaintenanceStatus.ok => MyCarColors.success,
+      MaintenanceStatus.needsHistory => MyCarColors.textSecondary,
     };
 
-    final progress = (rec.kmSinceService / rec.intervalKm).clamp(0.0, 1.0);
+    final progress = rec.progress;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -664,27 +892,27 @@ class _CarMileageTabState extends State<CarMileageTab> {
           ),
           const SizedBox(height: 8),
           Text(
-            rec.description,
+            _lastServiceText(rec),
             style: TextStyle(color: MyCarColors.textSecondary, fontSize: 13),
           ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: MyCarColors.border,
-              color: color,
+          if (progress != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: MyCarColors.border,
+                color: color,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 8),
           Text(
-            rec.isOverdue
-                ? 'Vencido hace ${rec.kmSinceService.toStringAsFixed(0)} km (cada ${rec.intervalKm} km)'
-                : 'Faltan ${rec.kmRemaining.toStringAsFixed(0)} km · cada ${rec.intervalKm} km o ${rec.intervalMonths} meses',
+            _recommendationDetail(rec),
             style: TextStyle(color: MyCarColors.textSecondary, fontSize: 12),
           ),
-          if (rec.status != MaintenanceStatus.ok) ...[
+          if (rec.isOverdue || rec.isSoon) ...[
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
@@ -699,6 +927,46 @@ class _CarMileageTabState extends State<CarMileageTab> {
         ],
       ),
     );
+  }
+
+  String _lastServiceText(MaintenanceRecommendation rec) {
+    final date = DateFormat('dd/MM/yyyy').format(rec.lastServiceDate);
+    final km = NumberFormat('#,##0').format(rec.lastServiceKm);
+    return 'Último: $date a $km km · hace ${rec.daysSinceService} días, '
+        '${NumberFormat('#,##0').format(rec.kmSinceService)} km';
+  }
+
+  String _recommendationDetail(MaintenanceRecommendation rec) {
+    if (!rec.hasInterval) {
+      return 'Registra este servicio una vez más para calcular tu intervalo '
+          'a partir de tu historial.';
+    }
+
+    final parts = <String>[
+      if (rec.intervalKm != null)
+        '${NumberFormat('#,##0').format(rec.intervalKm)} km',
+      if (rec.intervalDays != null) '${rec.intervalDays} días',
+    ];
+    final interval = 'Tu intervalo: cada ${parts.join(' o ')} '
+        '(${rec.recordCount} registros)';
+
+    final String status;
+    if (rec.isOverdue) {
+      status = 'Vencido. ';
+    } else {
+      final remaining = <String>[
+        if (rec.kmRemaining != null)
+          '${NumberFormat('#,##0').format(rec.kmRemaining)} km',
+        if (rec.daysRemaining != null) '${rec.daysRemaining} días',
+      ];
+      status = 'Faltan ${remaining.join(' o ')}. ';
+    }
+
+    final due = rec.estimatedDueDate;
+    final estimate = due == null || rec.isOverdue
+        ? ''
+        : ' · Estimado: ${DateFormat('dd/MM/yyyy').format(due)}';
+    return '$status$interval$estimate';
   }
 
   Widget _buildReadingTile(MileageReading reading) {

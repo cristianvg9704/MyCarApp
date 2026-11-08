@@ -1,48 +1,61 @@
 import 'package:flutter/material.dart';
+import '../models/car_transaction.dart';
 import '../models/maintenance_log.dart';
 import '../models/maintenance_recommendation.dart';
 import '../models/mileage_reading.dart';
-import '../services/database_helper.dart';
 import '../services/maintenance_recommendation_service.dart';
-import '../config/supabase_config.dart';
+import '../services/mileage_repository.dart';
+import '../services/usage_analytics.dart';
 
 class MileageProvider extends ChangeNotifier {
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final MileageRepository _repository;
+  final DateTime Function() _clock;
+
+  MileageProvider({MileageRepository? repository, DateTime Function()? clock})
+    : _repository = repository ?? SupabaseMileageRepository(),
+      _clock = clock ?? DateTime.now;
 
   List<MileageReading> _readings = [];
   List<MaintenanceLog> _maintenanceLogs = [];
+  List<CarTransaction> _transactions = [];
   List<MaintenanceRecommendation> _recommendations = [];
+  UsageInsights _insights = UsageInsights.empty;
   bool _isLoading = false;
   String? _errorMessage;
-  String? _loadedCarId;
 
+  /// Lecturas del odómetro, la más reciente primero.
   List<MileageReading> get readings => _readings;
   List<MaintenanceLog> get maintenanceLogs => _maintenanceLogs;
   List<MaintenanceRecommendation> get recommendations => _recommendations;
+  UsageInsights get insights => _insights;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  double? get currentOdometerKm =>
-      _readings.isEmpty ? null : _readings.first.odometerKm;
+  /// Último odómetro conocido, combinando lecturas, servicios y movimientos
+  /// de combustible/mantenimiento con odómetro.
+  double? get currentOdometerKm => _insights.currentOdometerKm;
 
   double get trackedKm =>
       MaintenanceRecommendationService.calculateTrackedKm(_readings);
 
-  Future<void> loadForCar(String carId, {DateTime? baselineDate}) async {
-    if (_loadedCarId == carId && _readings.isNotEmpty && !_isLoading) {
-      _refreshRecommendations(baselineDate);
-      return;
-    }
-
+  Future<void> loadForCar(String carId) async {
     _isLoading = true;
     _errorMessage = null;
-    _loadedCarId = carId;
     notifyListeners();
 
     try {
-      _readings = await _dbHelper.getMileageReadingsByCar(carId);
-      _maintenanceLogs = await _dbHelper.getMaintenanceLogsByCar(carId);
-      _refreshRecommendations(baselineDate);
+      final readings = await _repository.getReadings(carId);
+      _readings = List.of(readings)
+        ..sort((a, b) => b.readingDate.compareTo(a.readingDate));
+      _maintenanceLogs = await _repository.getMaintenanceLogs(carId);
+      try {
+        _transactions = await _repository.getTransactions(carId);
+      } catch (e) {
+        // Los movimientos solo enriquecen las métricas; no bloquean la carga.
+        _transactions = [];
+        debugPrint('Error loading transactions for mileage insights: $e');
+      }
+      _recompute();
     } catch (e) {
       _errorMessage = e.toString();
       debugPrint('Error loading mileage data: $e');
@@ -52,23 +65,24 @@ class MileageProvider extends ChangeNotifier {
     }
   }
 
-  void _refreshRecommendations(DateTime? baselineDate) {
-    final current = currentOdometerKm;
+  void _recompute() {
+    _insights = UsageAnalytics.compute(
+      readings: _readings,
+      maintenanceLogs: _maintenanceLogs,
+      transactions: _transactions,
+    );
+
+    final current = _insights.currentOdometerKm;
     if (current == null) {
       _recommendations = [];
       return;
     }
 
-    final baseline = baselineDate ??
-        (_readings.isNotEmpty
-            ? _readings.last.readingDate
-            : DateTime.now());
-
-    _recommendations =
-        MaintenanceRecommendationService.buildRecommendations(
+    _recommendations = MaintenanceRecommendationService.buildRecommendations(
       currentOdometerKm: current,
       maintenanceLogs: _maintenanceLogs,
-      baselineDate: baseline,
+      now: _clock(),
+      kmPerDay: _insights.kmPerDay,
     );
   }
 
@@ -78,37 +92,54 @@ class MileageProvider extends ChangeNotifier {
     required DateTime readingDate,
     String? notes,
   }) async {
-    final userId = SupabaseConfig.client.auth.currentUser?.id;
+    final userId = _repository.currentUserId;
     if (userId == null) return false;
 
-    if (_readings.isNotEmpty && odometerKm < _readings.first.odometerKm) {
+    final current = currentOdometerKm;
+    if (current != null && odometerKm < current) {
       _errorMessage =
-          'El odómetro no puede ser menor a la última lectura (${_readings.first.odometerKm.toStringAsFixed(0)} km)';
+          'El odómetro no puede ser menor a la última lectura (${current.toStringAsFixed(0)} km)';
       notifyListeners();
       return false;
     }
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final reading = MileageReading(
-        userId: userId,
-        carId: carId,
-        odometerKm: odometerKm,
-        readingDate: readingDate,
-        notes: notes,
+    return _write(carId, () {
+      return _repository.addReading(
+        MileageReading(
+          userId: userId,
+          carId: carId,
+          odometerKm: odometerKm,
+          readingDate: readingDate,
+          notes: notes,
+        ),
       );
-      await _dbHelper.insertMileageReading(reading);
-      await loadForCar(carId);
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+    });
+  }
+
+  /// Registra que se hizo un servicio de [serviceType] en [odometerKm].
+  /// Cada registro alimenta el intervalo propio de ese servicio.
+  Future<bool> addMaintenanceLog({
+    required String carId,
+    required String serviceType,
+    required double odometerKm,
+    DateTime? serviceDate,
+    String? notes,
+  }) async {
+    final userId = _repository.currentUserId;
+    if (userId == null) return false;
+
+    return _write(carId, () {
+      return _repository.addMaintenanceLog(
+        MaintenanceLog(
+          userId: userId,
+          carId: carId,
+          serviceType: serviceType,
+          odometerKm: odometerKm,
+          serviceDate: serviceDate ?? _clock(),
+          notes: notes,
+        ),
+      );
+    });
   }
 
   Future<bool> markMaintenanceDone({
@@ -116,24 +147,20 @@ class MileageProvider extends ChangeNotifier {
     required String serviceType,
     required double odometerKm,
     String? notes,
-  }) async {
-    final userId = SupabaseConfig.client.auth.currentUser?.id;
-    if (userId == null) return false;
+  }) => addMaintenanceLog(
+    carId: carId,
+    serviceType: serviceType,
+    odometerKm: odometerKm,
+    notes: notes,
+  );
 
+  Future<bool> _write(String carId, Future<void> Function() write) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final log = MaintenanceLog(
-        userId: userId,
-        carId: carId,
-        serviceType: serviceType,
-        odometerKm: odometerKm,
-        serviceDate: DateTime.now(),
-        notes: notes,
-      );
-      await _dbHelper.insertMaintenanceLog(log);
+      await write();
       await loadForCar(carId);
       return true;
     } catch (e) {
