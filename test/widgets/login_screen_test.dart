@@ -143,6 +143,9 @@ void main() {
       await tester.pumpWidget(buildTestableLogin());
       await tester.pumpAndSettle();
 
+      // Con los botones sociales la pantalla es más alta que el viewport de test
+      await tester.ensureVisible(find.text('Regístrate'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Regístrate'));
       await tester.pumpAndSettle();
 

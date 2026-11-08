@@ -89,6 +89,11 @@ dependencies:
   # Voice input (on-device speech recognition)
   speech_to_text: ^7.5.0
 
+  # Social sign-in (Apple / Google)
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.2.0
+  crypto: ^3.0.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

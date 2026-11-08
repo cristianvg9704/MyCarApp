@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
-import '../../config/app_config.dart';
+import '../../services/social_auth_service.dart';
+import '../../utils/auth_navigation.dart';
 import '../../utils/my_car_colors.dart';
+import '../../widgets/social_auth_buttons.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -39,22 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
-        // En modo prueba/dev, siempre mostrar la pantalla de suscripción
-        if (AppConfig.isDevMode) {
-          context.go('/subscription');
-        } else {
-          // En modo producción, solo mostrar la primera vez
-          final prefs = await SharedPreferences.getInstance();
-          final hasSeenSubscription = prefs.getBool('has_seen_subscription') ?? false;
-          
-          if (!hasSeenSubscription) {
-            // Primera vez: redirigir a pantalla de suscripción
-            context.go('/subscription');
-          } else {
-            // Ya vio la pantalla de suscripción: ir al home
-            context.go('/home');
-          }
-        }
+        await goAfterSignIn(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -63,6 +49,24 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _handleSocial(SocialProvider provider) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signInWithSocial(provider);
+    if (!mounted) return;
+
+    if (success) {
+      await goAfterSignIn(context);
+    } else if (authProvider.errorMessage != null) {
+      // Sin mensaje = el usuario canceló: no se muestra nada
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: MyCarColors.error,
+        ),
+      );
     }
   }
 
@@ -272,6 +276,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                     );
                   },
+                ),
+                const SizedBox(height: 24),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) => SocialAuthButtons(
+                    showApple: authProvider.isSocialProviderAvailable(
+                      SocialProvider.apple,
+                    ),
+                    enabled: !authProvider.isLoading,
+                    onPressed: _handleSocial,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 // Register link

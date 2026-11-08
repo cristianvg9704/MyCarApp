@@ -37,6 +37,8 @@ nuevo, ejecuta estos SQL en el **SQL Editor**, en orden:
 2. [docs/SUPABASE_MILEAGE_MIGRATION.md](docs/SUPABASE_MILEAGE_MIGRATION.md): kilometraje, mantenimientos y viajes.
 3. [docs/SUPABASE_TRANSACTIONS_MIGRATION.md](docs/SUPABASE_TRANSACTIONS_MIGRATION.md): ingresos y egresos
    (renombra `incomes` a `car_transactions`). **Sin esta migración las pantallas de Finanzas fallan.**
+4. [docs/SUPABASE_DELETE_ACCOUNT_MIGRATION.md](docs/SUPABASE_DELETE_ACCOUNT_MIGRATION.md): función para eliminar la
+   cuenta desde la app. **Sin ella "Eliminar cuenta" siempre falla.**
 
 ## Ejecutar en Android
 
@@ -131,6 +133,8 @@ En VS Code hay tareas en `.vscode/tasks.json` (**Tasks: Run Task → Test: …**
 
 ## Servicios que requieren configuración
 
+- **Iniciar sesión con Apple y Google:** requiere configuración en Apple Developer, Google Cloud y Supabase; los
+  client IDs de Google se pasan con `--dart-define`. Ver [docs/SOCIAL_AUTH_SETUP.md](docs/SOCIAL_AUTH_SETUP.md).
 - **Notificaciones push (Firebase):** iOS usa `ios/Runner/GoogleService-Info.plist`. En Android falta
   `android/app/google-services.json` y aplicar el plugin de Google Services; mientras tanto la inicialización de FCM
   falla de forma controlada y el resto de la app funciona.

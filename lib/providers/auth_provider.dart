@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
+import '../services/account_service.dart';
+import '../services/social_auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final SupabaseClient _supabase = SupabaseConfig.client;
+  final AccountService _accountService;
+  final SocialAuthService _socialAuth;
   bool _isLoading = false;
   String? _errorMessage;
+
+  AuthProvider({
+    AccountService? accountService,
+    SocialAuthService? socialAuthService,
+  }) : _accountService = accountService ?? SupabaseAccountService(),
+       _socialAuth = socialAuthService ?? DeviceSocialAuthService();
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -71,7 +81,7 @@ class AuthProvider extends ChangeNotifier {
           .eq('email', email.toLowerCase())
           .limit(1)
           .maybeSingle();
-      
+
       return response != null;
     } catch (e) {
       // Si no podemos acceder directamente a auth.users, retornar false
@@ -113,6 +123,36 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Si el proveedor social se puede usar en este dispositivo (Apple solo en
+  /// iOS y macOS).
+  bool isSocialProviderAvailable(SocialProvider provider) =>
+      _socialAuth.isAvailable(provider);
+
+  /// Inicia sesión (o crea la cuenta) con Apple o Google. Devuelve true si
+  /// quedó una sesión abierta. Si el usuario cancela devuelve false sin dejar
+  /// mensaje de error; si falla, deja el motivo en [errorMessage].
+  Future<bool> signInWithSocial(SocialProvider provider) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await _socialAuth.signIn(provider);
+      _isLoading = false;
+      notifyListeners();
+      return result == SocialSignInResult.signedIn;
+    } on SocialAuthException catch (e) {
+      _isLoading = false;
+      _setError(e.message);
+      return false;
+    } catch (e) {
+      debugPrint('Error en inicio de sesión social: $e');
+      _isLoading = false;
+      _setError('No se pudo iniciar sesión. Intenta de nuevo.');
+      return false;
+    }
+  }
+
   Future<bool> resetPassword(String email) async {
     try {
       _isLoading = true;
@@ -148,18 +188,38 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Elimina la cuenta del usuario y todos sus datos. Devuelve true si se
+  /// eliminó; si falla deja el mensaje en [errorMessage].
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _accountService.deleteAccount();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error eliminando la cuenta: $e');
+      _isLoading = false;
+      _setError('No se pudo eliminar la cuenta. Intenta de nuevo.');
+      return false;
+    }
+  }
+
   String _getErrorMessage(dynamic error) {
     if (error is AuthException) {
       final message = error.message.toLowerCase();
-      
+
       // Detectar errores de email duplicado (solo en inglés)
-      if (message.contains('already registered') || 
+      if (message.contains('already registered') ||
           message.contains('user already exists') ||
           message.contains('duplicate') ||
           message.contains('email already registered')) {
         return 'Este correo electrónico ya está registrado. Por favor usa otro correo o inicia sesión si ya tienes una cuenta.';
       }
-      
+
       return error.message;
     }
     return error.toString();
