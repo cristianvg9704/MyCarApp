@@ -1,12 +1,25 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'app_env.dart';
 
 class SupabaseConfig {
-  static const String supabaseUrl = 'https://sdnwjwwdclatyqvngidu.supabase.co';
-  static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbndqd3dkY2xhdHlxdm5naWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NzE0NDYsImV4cCI6MjA4NjE0NzQ0Nn0.eSyRXB43OKaKYCftUuq0ebl6p6iJxxCsf9I0I7MR9EU';
+  static const String supabaseUrl = AppEnv.supabaseUrl;
+  static const String supabaseAnonKey = AppEnv.supabaseAnonKey;
 
-  static Future<void> initialize() async {
-    await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  /// [url] y [anonKey] se pueden sustituir (por defecto vienen del `.env`).
+  /// Lanza un [StateError] claro si falta alguno, en vez de fallar después con
+  /// un error de red difícil de interpretar.
+  static Future<void> initialize({
+    String url = supabaseUrl,
+    String anonKey = supabaseAnonKey,
+  }) async {
+    final missing = AppEnv.missing({
+      'SUPABASE_URL': url,
+      'SUPABASE_ANON_KEY': anonKey,
+    });
+    if (missing.isNotEmpty) {
+      throw StateError(AppEnv.missingMessage(missing));
+    }
+    await Supabase.initialize(url: url, anonKey: anonKey);
   }
 
   static SupabaseClient get client => Supabase.instance.client;

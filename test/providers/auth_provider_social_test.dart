@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:new_my_car_app/config/supabase_config.dart';
+import '../helpers/supabase_test_init.dart';
 import 'package:new_my_car_app/providers/auth_provider.dart';
 import 'package:new_my_car_app/services/social_auth_service.dart';
 
@@ -28,10 +27,7 @@ void main() {
   // así que Supabase debe estar inicializado antes de poder crearlo en un test.
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
-    await Supabase.initialize(
-      url: SupabaseConfig.supabaseUrl,
-      anonKey: SupabaseConfig.supabaseAnonKey,
-    );
+    await initSupabaseForTests();
   });
 
   late _FakeSocialAuthService social;

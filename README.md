@@ -25,7 +25,20 @@ git clone <url-del-repo>
 cd NewMyCarApp
 flutter pub get
 cd ios && pod install && cd ..     # solo si vas a correr en iOS
+cp .env.example .env               # y rellena las claves (ver abajo)
 ```
+
+### Claves y configuración (`.env`)
+Las claves (Supabase, RevenueCat, Google) **no están en el código**: viven en `.env`, que git ignora. Copia
+`.env.example` a `.env`, rellénalo y pásalo siempre al ejecutar o compilar:
+
+```bash
+flutter run --dart-define-from-file=.env
+flutter build ios --release --dart-define-from-file=.env
+```
+Sin ese flag la app arranca pero registra `Falta configuración: SUPABASE_URL…` y no se conecta. En VS Code las
+configuraciones de `.vscode/launch.json` ya lo incluyen. Los tests no lo necesitan. Detalles en el skill
+`environment-config`.
 
 ### Base de datos (Supabase)
 
@@ -138,8 +151,8 @@ En VS Code hay tareas en `.vscode/tasks.json` (**Tasks: Run Task → Test: …**
 - **Notificaciones push (Firebase):** iOS usa `ios/Runner/GoogleService-Info.plist`. En Android falta
   `android/app/google-services.json` y aplicar el plugin de Google Services; mientras tanto la inicialización de FCM
   falla de forma controlada y el resto de la app funciona.
-- **Suscripciones (RevenueCat):** la clave configurada en `lib/services/subscription_service.dart` es la de iOS
-  (`appl_…`). Para compras en Android hace falta la clave de Google Play de RevenueCat.
+- **Suscripciones (RevenueCat):** las claves van en `.env` (`REVENUECAT_IOS_API_KEY` = `appl_…`,
+  `REVENUECAT_ANDROID_API_KEY` = `goog_…`). Sin la de Android, RevenueCat queda desactivado en Android.
 - **Ubicación y viajes GPS:** la app pide permisos de ubicación (en segundo plano para registrar viajes);
   acéptalos en el primer uso.
 

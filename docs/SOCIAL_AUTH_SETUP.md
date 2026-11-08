@@ -38,14 +38,13 @@ proveedores se publican juntos.
      </dict>
    </array>
    ```
-5. **IDs en la app:** se pasan al compilar (no hay que commitearlos):
-   ```bash
-   flutter run \
-     --dart-define=GOOGLE_WEB_CLIENT_ID=XXXX.apps.googleusercontent.com \
-     --dart-define=GOOGLE_IOS_CLIENT_ID=YYYY.apps.googleusercontent.com
+5. **IDs en la app:** ponlos en tu `.env` (no se versiona; ver `.env.example`):
    ```
-   (`GOOGLE_IOS_CLIENT_ID` solo en iOS.) En VS Code agrégalos en `args` de `.vscode/launch.json`. También puedes
-   escribirlos como valor por defecto en `lib/config/social_auth_config.dart`.
+   GOOGLE_WEB_CLIENT_ID=XXXX.apps.googleusercontent.com
+   GOOGLE_IOS_CLIENT_ID=YYYY.apps.googleusercontent.com
+   ```
+   (`GOOGLE_IOS_CLIENT_ID` solo en iOS.) Se cargan con `flutter run --dart-define-from-file=.env`; las
+   configuraciones de `.vscode/launch.json` ya lo incluyen.
 6. Tras agregar el plugin hay que recompilar por completo (`flutter clean`, `pod install` en iOS).
 
 ## 3. Cuentas y datos

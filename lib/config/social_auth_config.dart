@@ -1,8 +1,8 @@
 /// Identificadores para iniciar sesión con Google. No son secretos, pero
 /// dependen de tu proyecto de Google Cloud (ver `docs/SOCIAL_AUTH_SETUP.md`).
 ///
-/// Se pueden fijar aquí o pasar al compilar:
-/// `flutter run --dart-define=GOOGLE_WEB_CLIENT_ID=... --dart-define=GOOGLE_IOS_CLIENT_ID=...`
+/// Se definen en `.env` (ver `.env.example`) y se cargan al compilar:
+/// `flutter run --dart-define-from-file=.env`
 class SocialAuthConfig {
   SocialAuthConfig._();
 

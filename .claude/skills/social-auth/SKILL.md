@@ -26,7 +26,7 @@ la cuenta (Supabase crea el usuario la primera vez). La configuración externa (
 
 ## Configuración en la app
 `lib/config/social_auth_config.dart`: `GOOGLE_WEB_CLIENT_ID` (obligatorio, el mismo que Supabase) y `GOOGLE_IOS_CLIENT_ID` (iOS),
-vía `--dart-define` o valor por defecto. Sin el Web client ID, el botón de Google muestra "aún no está configurado".
+vía `.env` (`--dart-define-from-file=.env`). Sin el Web client ID, el botón de Google muestra "aún no está configurado".
 
 ## Plataforma (manual, no está en el código)
 - iOS: capability **Sign in with Apple** en Xcode; esquema de URL con el *reversed client ID* de Google en `Info.plist`.

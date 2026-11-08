@@ -11,7 +11,10 @@
             "program": "lib/main.dart",
             "flutterMode": "debug",
             "deviceId": "ZY22KSF35F",
-            "console": "debugConsole"
+            "console": "debugConsole",
+            "args": [
+                "--dart-define-from-file=.env"
+            ]
         },
         {
             "name": "NewMyCarApp",
@@ -19,7 +22,8 @@
             "type": "dart",
             "deviceId": "iPhone 17",
             "args": [
-               "--hot"
+               "--hot",
+               "--dart-define-from-file=.env"
             ]
         },
         {
@@ -27,13 +31,18 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
-
+            "args": [
+                "--dart-define-from-file=.env"
+            ]
         },
         {
             "name": "NewMyCarApp (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "--dart-define-from-file=.env"
+            ]
         }
     ]
 }

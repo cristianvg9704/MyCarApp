@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_env.dart';
 
 enum SubscriptionTier { free, monthly, yearly }
 
@@ -22,20 +23,27 @@ class SubscriptionService {
 
   static const String monthlyProductId = 'rc_monthly';
   static const String yearlyProductId = 'rc_annual';
-  static const String revenueCatApiKey = 'appl_XSstkcbOunhySDJeJHunVqWnGNK';
 
   Future<void> initialize() async {
     if (_initialized) return;
 
     try {
-      // Platform-specific API keys (usando la misma key para ambas plataformas en modo test)
+      // Cada plataforma tiene su propia clave pública de RevenueCat (.env)
       String apiKey;
       if (Platform.isIOS) {
-        apiKey = revenueCatApiKey;
+        apiKey = AppEnv.revenueCatIosApiKey;
       } else if (Platform.isAndroid) {
-        apiKey = revenueCatApiKey;
+        apiKey = AppEnv.revenueCatAndroidApiKey;
       } else {
         debugPrint('⚠️ RevenueCat solo está disponible en Android e iOS');
+        return;
+      }
+      if (apiKey.isEmpty) {
+        debugPrint(
+          '⚠️ RevenueCat sin configurar: define '
+          '${Platform.isIOS ? 'REVENUECAT_IOS_API_KEY' : 'REVENUECAT_ANDROID_API_KEY'} '
+          'en .env y ejecuta con --dart-define-from-file=.env',
+        );
         return;
       }
 
