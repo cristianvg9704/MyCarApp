@@ -8,7 +8,7 @@ términos y nuestra [Política de Privacidad](politica-de-privacidad.md). Si no 
 ## 1. Qué es MyCar
 
 MyCar te ayuda a llevar el control de tus vehículos: finanzas (ingresos y egresos), kilometraje, viajes, mantenimiento
-y alertas. Parte de las funciones son gratuitas y otras requieren una suscripción.
+y alertas. Para usar la app necesitas una suscripción activa: no hay plan gratuito.
 
 ## 2. Tu cuenta
 
@@ -28,8 +28,12 @@ datos cuando el vehículo esté detenido. El seguimiento de viajes se inicia sol
 
 ## 4. Suscripción "MyCarApp Pro"
 
-- **Planes:** mensual y anual. El precio exacto, con impuestos, se muestra en la app antes de comprar y puede variar
-  según tu país y moneda.
+- **Planes:** mensual y anual. Ambos incluyen las mismas alertas y soporte. El plan **mensual** permite hasta **15
+  vehículos**; el plan **anual** permite **vehículos ilimitados** y tiene **soporte prioritario**. El precio exacto, con
+  impuestos, se muestra en la app antes de comprar y puede variar según tu país y moneda.
+- **Sin suscripción no se puede usar la app:** no hay plan gratuito. Si tu suscripción vence o la cancelas, conservas tu
+  cuenta y tus datos, pero debes suscribirte de nuevo para volver a usar MyCar. Puedes eliminar tu cuenta en cualquier
+  momento.
 - **Pago:** se cobra a tu cuenta de Apple (App Store) o de Google (Google Play) al confirmar la compra.
 - **Renovación automática:** la suscripción se renueva sola por el mismo periodo y precio, salvo que la canceles
   **al menos 24 horas antes** de que termine el periodo actual. El cobro de la renovación se hace dentro de las 24

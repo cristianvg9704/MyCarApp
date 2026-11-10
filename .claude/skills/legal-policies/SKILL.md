@@ -32,3 +32,9 @@ Apple exige una **URL pública** de la política (App Store Connect) y que ambos
 ## Etiquetas de privacidad de Apple (App Store Connect)
 Todos "App Functionality", vinculados al usuario, sin rastreo: Name, Email, Phone, Photos or Videos, Other User Content,
 Other Financial Info, Purchase History, User ID, Device ID y Other Data Types. Sin Location, Audio, Diagnostics ni Usage Data.
+
+## Planes (mantener sincronizado con la app)
+Los términos (§1 y §4) describen: sin plan gratuito; mensual hasta 15 vehículos; anual vehículos ilimitados y soporte
+prioritario; mismas alertas. Si cambian los topes o beneficios (`lib/utils/subscription_plans.dart`, ver skill
+`subscriptions`), actualiza `docs/legal/terminos-de-uso.md` y **vuelve a publicar** el documento en el sitio web.
+
