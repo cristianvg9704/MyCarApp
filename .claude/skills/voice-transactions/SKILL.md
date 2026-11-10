@@ -82,6 +82,9 @@ rellena el formulario y el usuario pulsa Guardar.
   (`INTERNET` faltaba en el manifest principal; sin él los builds release no tenían red.)
 - Errores: permiso negado, motor no disponible y fallo durante la escucha muestran un mensaje en español; "no match" y
   timeout de silencio se ignoran.
+- Plugin nativo ausente: si la app instalada se compiló antes de agregar `speech_to_text`, la llamada lanza
+  `MissingPluginException`. Se captura y se muestra "no hay reconocimiento de voz disponible"; la solución es
+  detener la app y recompilar (`flutter clean && flutter pub get`, y `pod install` en iOS), no basta con hot reload/restart.
 
 ## Tests
 - `test/helpers/fake_speech_recognizer.dart`: reconocedor falso compartido (`say`, `level`, `fail`, `finishWithoutFinalResult`).

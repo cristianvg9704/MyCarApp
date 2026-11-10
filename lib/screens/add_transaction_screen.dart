@@ -109,7 +109,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   void dispose() {
-    _recognizer?.cancel();
+    _recognizer?.cancel().catchError((Object e) {
+      debugPrint('Error cancelando el reconocimiento de voz: $e');
+    });
     _descriptionController.dispose();
     _amountController.dispose();
     _notesController.dispose();
@@ -127,7 +129,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
-    final failure = await _speech.initialize();
+    SpeechFailure? failure;
+    try {
+      failure = await _speech.initialize();
+    } catch (e) {
+      // p. ej. MissingPluginException si la app no se recompiló tras agregar
+      // el plugin nativo
+      debugPrint('Error inicializando el reconocimiento de voz: $e');
+      failure = SpeechFailure.unavailable;
+    }
     if (!mounted) return;
     if (failure != null) {
       _showMessage(speechFailureMessage(failure));

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -76,10 +77,17 @@ class DeviceSpeechRecognizer implements SpeechRecognizer {
   Future<SpeechFailure?> initialize() async {
     if (_initialized) return _speech.isAvailable ? null : _initFailure;
 
-    final available = await _speech.initialize(
-      onError: _handleError,
-      onStatus: _handleStatus,
-    );
+    final bool available;
+    try {
+      available = await _speech.initialize(
+        onError: _handleError,
+        onStatus: _handleStatus,
+      );
+    } on MissingPluginException catch (e) {
+      // El plugin nativo no está en la app instalada: falta recompilarla.
+      debugPrint('speech_to_text no está instalado en la app: $e');
+      return SpeechFailure.unavailable;
+    }
     _initialized = true;
 
     if (!available) {
