@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/my_car_colors.dart';
-import '../../config/app_config.dart';
 import '../../utils/my_car_palette.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -40,14 +39,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  /// Guarda que el onboarding ya se vio: solo se muestra la primera vez.
   Future<void> _completeOnboarding() async {
-    // En modo dev, NO guardar las preferencias para poder ver el onboarding cada vez
-    // En modo prod, guardar las preferencias normalmente
-    if (AppConfig.isProdMode) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('onboarding_completed', true);
-    }
-    // En modo dev, simplemente navegar sin guardar
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
     if (mounted) {
       context.go('/login');
     }

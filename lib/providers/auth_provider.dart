@@ -11,11 +11,32 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  /// Se llama con el id del usuario cuando inicia sesión, y sin argumentos al
+  /// cerrarla. La app los usa para asociar las compras (RevenueCat) a la cuenta.
+  final Future<void> Function(String userId)? _onSignedIn;
+  final Future<void> Function()? _onSignedOut;
+  final String? Function()? _currentUserId;
+
   AuthProvider({
     AccountService? accountService,
     SocialAuthService? socialAuthService,
+    Future<void> Function(String userId)? onSignedIn,
+    Future<void> Function()? onSignedOut,
+    String? Function()? currentUserId,
   }) : _accountService = accountService ?? SupabaseAccountService(),
-       _socialAuth = socialAuthService ?? DeviceSocialAuthService();
+       _socialAuth = socialAuthService ?? DeviceSocialAuthService(),
+       _onSignedIn = onSignedIn,
+       _onSignedOut = onSignedOut,
+       _currentUserId = currentUserId;
+
+  Future<void> _notifySignedIn(String? userId) async {
+    if (userId == null || userId.isEmpty) return;
+    try {
+      await _onSignedIn?.call(userId);
+    } catch (e) {
+      debugPrint('Error al asociar la cuenta con las compras: $e');
+    }
+  }
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -53,6 +74,7 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (response.user != null) {
+        if (response.session != null) await _notifySignedIn(response.user!.id);
         _isLoading = false;
         notifyListeners();
         return true;
@@ -106,6 +128,8 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (response.user != null) {
+        // El plan debe estar al día antes de decidir a dónde va el usuario.
+        await _notifySignedIn(response.user!.id);
         _isLoading = false;
         notifyListeners();
         return true;
@@ -138,6 +162,11 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final result = await _socialAuth.signIn(provider);
+      if (result == SocialSignInResult.signedIn) {
+        await _notifySignedIn(
+          _currentUserId != null ? _currentUserId() : currentUser?.id,
+        );
+      }
       _isLoading = false;
       notifyListeners();
       return result == SocialSignInResult.signedIn;
@@ -178,6 +207,11 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       await _supabase.auth.signOut();
+      try {
+        await _onSignedOut?.call();
+      } catch (e) {
+        debugPrint('Error al desvincular las compras: $e');
+      }
 
       _isLoading = false;
       notifyListeners();

@@ -40,8 +40,8 @@ import 'services/push_notification_service.dart';
 import 'services/subscription_service.dart';
 import 'config/app_env.dart';
 import 'config/supabase_config.dart';
-import 'config/app_config.dart';
 import 'utils/app_logging.dart';
+import 'utils/app_redirect.dart';
 import 'utils/subscription_plans.dart';
 import 'utils/my_car_palette.dart';
 
@@ -217,7 +217,12 @@ class MyCarApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
         ChangeNotifierProvider(create: (_) => MileageProvider()),
         ChangeNotifierProvider(create: (_) => TripProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()..listenToAuthChanges()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(
+            onSignedIn: SubscriptionService.instance.identifyUser,
+            onSignedOut: SubscriptionService.instance.logOutUser,
+          )..listenToAuthChanges(),
+        ),
         ChangeNotifierProvider(create: (_) => UserProvider()..loadUser()),
       ],
       child: Consumer<AppProvider>(
@@ -237,78 +242,24 @@ class MyCarApp extends StatelessWidget {
 }
 
 final GoRouter _router = GoRouter(
-  initialLocation: AppConfig.isDevMode ? '/onboarding' : '/',
+  initialLocation: '/',
   redirect: (BuildContext context, GoRouterState state) async {
-    // Obtener providers de forma segura
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final prefs = await SharedPreferences.getInstance();
-      
-      final isAuthenticated = authProvider.isAuthenticated;
-
-      // No hay plan gratuito: sin una suscripción activa solo se ve la pantalla
-      // de planes.
       final subscriptionProvider = Provider.of<SubscriptionProvider>(
         context,
         listen: false,
       );
-      final gate = subscriptionGateRedirect(
-        isAuthenticated: isAuthenticated,
+      final prefs = await SharedPreferences.getInstance();
+
+      return appRedirect(
+        isAuthenticated: authProvider.isAuthenticated,
         hasPlan: subscriptionProvider.isPremium,
+        onboardingCompleted: prefs.getBool('onboarding_completed') ?? false,
         path: state.uri.path,
       );
-      if (gate != null) return gate;
-
-      final isOnboardingRoute = state.uri.path == '/onboarding';
-      final isAuthRoute = state.uri.path == '/login' || 
-                          state.uri.path == '/register' || 
-                          state.uri.path == '/forgot-password';
-      final isHomeRoute = state.uri.path == '/' || state.uri.path == '/home';
-      
-      // En modo dev: mostrar onboarding siempre al iniciar (ruta raíz)
-      // En modo prod: verificar preferencias guardadas
-      if (AppConfig.isDevMode) {
-        // En modo dev:
-        // - Si está autenticado, no puede ir a onboarding (redirigir a home)
-        // - Si no está autenticado y navega a home, redirigir a login (no onboarding)
-        // - El onboarding solo se muestra cuando se navega explícitamente a /onboarding
-        
-        if (isAuthenticated) {
-          // Usuario autenticado: proteger rutas de auth y onboarding
-          if (isAuthRoute || isOnboardingRoute) {
-            return '/';
-          }
-        } else {
-          // Usuario NO autenticado: redirigir home a login
-          if (isHomeRoute && !isAuthRoute && !isOnboardingRoute) {
-            return '/login';
-          }
-        }
-        // Permitir navegación libre en otras rutas
-        return null;
-      } else {
-        // Modo prod: comportamiento normal con preferencias guardadas
-        final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-        
-        // Si no completó onboarding, redirigir a onboarding (excepto si ya está ahí)
-        if (!onboardingCompleted && !isOnboardingRoute) {
-          return '/onboarding';
-        }
-        
-        // Si completó onboarding pero no está autenticado, redirigir a login (excepto si ya está en auth)
-        if (onboardingCompleted && !isAuthenticated && !isAuthRoute) {
-          return '/login';
-        }
-        
-        // Si está autenticado y trata de ir a login/register/onboarding, redirigir a home
-        if (isAuthenticated && (isAuthRoute || isOnboardingRoute)) {
-          return '/';
-        }
-      }
-      
-      return null; // No redirigir
     } catch (e) {
-      // Si hay error al acceder a providers, permitir navegación normal
+      // Si hay error al acceder a los providers, permitir navegación normal
       debugPrint('Error en redirect: $e');
       return null;
     }

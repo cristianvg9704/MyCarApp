@@ -13,7 +13,7 @@ graph TB
     end
 
     subgraph Config[Configuración]
-        G[AppConfig] --> H{Modo Dev/Prod}
+        G[appRedirect] --> H{Sesión / plan / onboarding}
         I[SupabaseConfig] --> J[Credenciales]
     end
 
@@ -49,20 +49,21 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant App as main.dart
-    participant Config as AppConfig
+    participant Access as appRedirect
     participant Supabase as SupabaseConfig
     participant DB as DatabaseHelper
     participant Router as GoRouter
 
-    App->>Config: Verificar modo
     App->>Supabase: Inicializar
     App->>DB: Inicializar SQLite
     App->>Router: Configurar rutas
-    Router->>Config: Verificar modo dev
-    alt Modo Dev
-        Router->>Router: Redirigir a onboarding
-    else Modo Prod
-        Router->>Router: Verificar preferencias
+    Router->>Access: Sesión, plan y onboarding visto
+    alt Sin sesión
+        Access-->>Router: Onboarding (1ª vez) o login
+    else Con sesión sin suscripción
+        Access-->>Router: Pantalla de planes
+    else Con sesión y suscripción
+        Access-->>Router: Entra directo al inicio
     end
 ```
 
@@ -118,7 +119,7 @@ graph LR
 - Car, Income, User
 
 ### Configuración
-- AppConfig: Dev/Prod mode
+- appRedirect (`lib/utils/app_redirect.dart`): regla de acceso (onboarding una vez, login, planes)
 - MyCarColors: Paleta colores
 - AppTheme: Temas
 

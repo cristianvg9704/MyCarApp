@@ -10,6 +10,19 @@ import '../config/app_env.dart';
 /// compró, venció o se canceló) y bloquea el uso de la app.
 enum SubscriptionTier { none, monthly, yearly }
 
+/// Plan guardado en el teléfono (último valor conocido). Cualquier valor
+/// desconocido o antiguo cuenta como [SubscriptionTier.none].
+SubscriptionTier subscriptionTierFromName(String? name) {
+  switch (name) {
+    case 'monthly':
+      return SubscriptionTier.monthly;
+    case 'yearly':
+      return SubscriptionTier.yearly;
+    default:
+      return SubscriptionTier.none;
+  }
+}
+
 class SubscriptionService {
   static final SubscriptionService instance = SubscriptionService._internal();
   SubscriptionService._internal();
@@ -67,6 +80,7 @@ class SubscriptionService {
       debugPrint('✅ SubscriptionService inicializado correctamente');
     } catch (e) {
       debugPrint('❌ Error al inicializar SubscriptionService: $e');
+      await _restoreCachedTier();
     }
   }
 
@@ -76,6 +90,20 @@ class SubscriptionService {
       await _updateSubscriptionTier(customerInfo);
     } catch (e) {
       debugPrint('⚠️ Error al cargar estado de suscripción: $e');
+      await _restoreCachedTier();
+    }
+  }
+
+  /// Si no se pudo consultar RevenueCat (sin internet, servicio caído), se
+  /// conserva el último plan conocido para no dejar sin acceso a quien ya
+  /// pagó. La próxima consulta exitosa lo corrige.
+  Future<void> _restoreCachedTier() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _currentTier = subscriptionTierFromName(prefs.getString('subscription_tier'));
+      debugPrint('ℹ️ Plan restaurado desde el caché: ${_currentTier.name}');
+    } catch (e) {
+      debugPrint('⚠️ No se pudo leer el plan guardado: $e');
     }
   }
 
@@ -388,13 +416,37 @@ class SubscriptionService {
     }
   }
 
+  /// Asocia las compras a la cuenta del usuario (su id de Supabase) para que el
+  /// plan lo siga entre dispositivos y reinstalaciones, y actualiza el plan.
+  /// Se llama al iniciar sesión; al abrir la app con sesión, `initialize` ya
+  /// vuelve a identificarlo con el id guardado.
   Future<void> identifyUser(String userId) async {
     try {
-      await Purchases.logIn(userId);
+      final result = await Purchases.logIn(userId);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_id', userId);
+      await _updateSubscriptionTier(result.customerInfo);
     } catch (e) {
       debugPrint('❌ Error al identificar usuario: $e');
+      await _restoreCachedTier();
+    }
+  }
+
+  /// Al cerrar sesión: desvincula las compras de este teléfono y olvida el plan,
+  /// para que la siguiente persona que inicie sesión aquí no herede el plan.
+  Future<void> logOutUser() async {
+    try {
+      if (!await Purchases.isAnonymous) await Purchases.logOut();
+    } catch (e) {
+      debugPrint('⚠️ Error al cerrar la sesión de RevenueCat: $e');
+    }
+    _currentTier = SubscriptionTier.none;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('subscription_tier');
+    } catch (e) {
+      debugPrint('⚠️ No se pudo borrar el plan guardado: $e');
     }
   }
 }

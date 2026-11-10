@@ -48,18 +48,32 @@ suscripción activa" (nunca compró, venció o canceló).
 | Soporte | sí | **prioritario** |
 
 Reglas en `lib/utils/subscription_plans.dart` (puras y probadas): `planFeatures`, `vehicleLimitFor`, `canAddVehicle`,
-`currentPlanId`, `selectedPlanId`, `actionFor`, `subscriptionGateRedirect`. Para cambiar un tope o un beneficio, se cambia ahí y
+`currentPlanId`, `selectedPlanId`, `actionFor`, `subscriptionGateRedirect` (y `appRedirect`). Para cambiar un tope o un beneficio, se cambia ahí y
 en `subscriptionScreen`/legal (ver abajo).
 
-### Acceso a la app (paywall)
-- `subscriptionGateRedirect` se aplica en el `redirect` del router (`lib/main.dart`): un usuario **con sesión pero sin plan**
-  solo ve `/subscription`. Tras iniciar sesión `goAfterSignIn` va a `/home` y el router lo desvía a los planes si hace falta.
+### Acceso a la app (onboarding, login y paywall)
+Una sola regla pura, `appRedirect` (`lib/utils/app_redirect.dart`, con tests), que usa el `redirect` del router (`lib/main.dart`):
+- **Sin sesión:** la primera vez, onboarding (se recuerda con `onboarding_completed`, también al "Saltar"); después, login.
+- **Con sesión y plan activo (usuario normal):** entra directo al inicio, **sin onboarding, login ni planes**. Los planes solo
+  se abren desde Ajustes.
+- **Con sesión y sin plan:** solo `/subscription` (`subscriptionGateRedirect`). Tras iniciar sesión `goAfterSignIn` va a `/home`
+  y el router lo desvía a los planes si hace falta.
+- Ya no existe el modo dev/prod (`AppConfig`): el onboarding sale una sola vez en cualquier build. Para volver a verlo durante
+  el desarrollo, desinstala la app o borra sus datos.
 - La pantalla sin plan **no se puede cerrar** (sin X, `PopScope` bloquea "atrás"). Solo ofrece: elegir plan, **Restaurar
-  compras**, **Cerrar sesión** y **Eliminar mi cuenta** (Apple 5.1.1(v): se puede eliminar aunque haya paywall;
-  `lib/utils/account_actions.dart`, compartido con Ajustes).
-- El estado del plan se carga en `main()` (`SubscriptionService.initialize`) antes de `runApp`, así que el primer `redirect` ya lo
-  conoce. El router no escucha cambios: si el plan vence con la app abierta, se aplica en la siguiente navegación.
+  compras**, **Cerrar sesión** y **Eliminar mi cuenta** (Apple 5.1.1(v); `lib/utils/account_actions.dart`, compartido con Ajustes).
+- El plan se carga en `main()` (`SubscriptionService.initialize`) antes de `runApp`, así que el primer `redirect` ya lo conoce.
+  El router no escucha cambios: si el plan vence con la app abierta, se aplica en la siguiente navegación.
 - Si RevenueCat no está configurado (clave vacía en `.env`) el tier queda en `none` y el paywall bloquea la app.
+
+### El plan viaja con la cuenta (identidad en RevenueCat)
+- Al iniciar sesión (correo, Apple o Google), `AuthProvider` llama `onSignedIn` → `SubscriptionService.identifyUser(userId)`
+  (`Purchases.logIn` con el id de Supabase) y actualiza el plan **antes** de decidir a dónde ir. Así un usuario que ya pagó no cae
+  en el paywall al reinstalar o cambiar de iPhone. Al abrir la app con sesión, `initialize` vuelve a identificarlo con el id guardado.
+- Al cerrar sesión, `onSignedOut` → `logOutUser`: desvincula las compras y borra el plan guardado, para que otra persona que use
+  el teléfono no herede el plan.
+- Si RevenueCat falla (sin internet, servicio caído) se usa el **último plan conocido** guardado en el teléfono
+  (`subscription_tier`, `subscriptionTierFromName`), para no bloquear a quien ya pagó; la siguiente consulta exitosa lo corrige.
 
 ### Límite de vehículos
 - `CarProvider(vehicleLimit: ...)` (en `main.dart` lee el plan actual): `canAddCar`, `vehicleLimit` y `addCar` lanza
@@ -83,5 +97,7 @@ en `subscriptionScreen`/legal (ver abajo).
   | Suscriptor, el otro plan marcado | "Cambiar a plan Anual / Mensual" (compra; ambos van en el mismo grupo de suscripciones) |
 - Un suscriptor cuyo paquete no está en la oferta actual no tiene nada marcado (no se adivina).
 - Pendiente (Apple): enlaces a Política de Privacidad y Términos en esta pantalla.
-- Tests: `test/utils/subscription_plans_test.dart`, `test/widgets/subscription_screen_test.dart`,
+- Tests: `test/utils/subscription_plans_test.dart`, `test/utils/app_redirect_test.dart`, `test/services/subscription_tier_test.dart`,
+  `test/providers/auth_provider_social_test.dart` (grupo "asociar las compras"), `test/widgets/onboarding_screen_test.dart`,
+  `test/widgets/subscription_screen_test.dart`,
   `test/providers/car_provider_test.dart` (grupo "límite de vehículos"), `test/widgets/vehicle_limit_test.dart`.

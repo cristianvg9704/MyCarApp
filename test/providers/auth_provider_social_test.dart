@@ -119,4 +119,101 @@ void main() {
       expect(provider.isSocialProviderAvailable(SocialProvider.google), isTrue);
     });
   });
+
+  group('asociar las compras a la cuenta', () {
+    test(
+      'al iniciar sesión con Apple/Google llama onSignedIn con el id',
+      () async {
+        final ids = <String>[];
+        final linked = AuthProvider(
+          socialAuthService: social,
+          onSignedIn: (id) async => ids.add(id),
+          currentUserId: () => 'user-123',
+        );
+
+        await linked.signInWithSocial(SocialProvider.google);
+
+        expect(ids, ['user-123']);
+      },
+    );
+
+    test('si el usuario cancela no asocia nada', () async {
+      social.result = SocialSignInResult.cancelled;
+      final ids = <String>[];
+      final linked = AuthProvider(
+        socialAuthService: social,
+        onSignedIn: (id) async => ids.add(id),
+        currentUserId: () => 'user-123',
+      );
+
+      final ok = await linked.signInWithSocial(SocialProvider.apple);
+
+      expect(ok, isFalse);
+      expect(ids, isEmpty);
+    });
+
+    test('si falla el inicio de sesión no asocia nada', () async {
+      social.error = const SocialAuthException('x');
+      final ids = <String>[];
+      final linked = AuthProvider(
+        socialAuthService: social,
+        onSignedIn: (id) async => ids.add(id),
+        currentUserId: () => 'user-123',
+      );
+
+      await linked.signInWithSocial(SocialProvider.google);
+
+      expect(ids, isEmpty);
+    });
+
+    test('sin id de usuario no llama a onSignedIn', () async {
+      final ids = <String>[];
+      final linked = AuthProvider(
+        socialAuthService: social,
+        onSignedIn: (id) async => ids.add(id),
+        currentUserId: () => null,
+      );
+
+      await linked.signInWithSocial(SocialProvider.google);
+
+      expect(ids, isEmpty);
+    });
+
+    test('un error al asociar las compras no impide entrar', () async {
+      final linked = AuthProvider(
+        socialAuthService: social,
+        onSignedIn: (_) async => throw Exception('RevenueCat caído'),
+        currentUserId: () => 'user-123',
+      );
+
+      final ok = await linked.signInWithSocial(SocialProvider.google);
+
+      expect(ok, isTrue);
+      expect(linked.errorMessage, isNull);
+    });
+
+    test('al cerrar sesión desvincula las compras', () async {
+      var loggedOut = 0;
+      final linked = AuthProvider(
+        socialAuthService: social,
+        onSignedOut: () async => loggedOut++,
+      );
+
+      await linked.signOut();
+
+      expect(loggedOut, 1);
+    });
+
+    test('un error al desvincular no deja la sesión a medias', () async {
+      final linked = AuthProvider(
+        socialAuthService: social,
+        onSignedOut: () async => throw Exception('RevenueCat caído'),
+      );
+
+      await linked.signOut();
+
+      expect(linked.errorMessage, isNull);
+      expect(linked.isLoading, isFalse);
+    });
+  });
 }
