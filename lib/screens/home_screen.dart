@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/vehicle_image_helper.dart';
+import '../widgets/user_avatar.dart';
 import '../utils/vehicle_modal_helper.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -27,7 +28,11 @@ class HomeScreen extends StatelessWidget {
             backgroundColor: MyCarColors.primary,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16, right: 20),
+              titlePadding: const EdgeInsets.only(
+                left: 20,
+                bottom: 16,
+                right: 20,
+              ),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -43,16 +48,9 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/defaultUser.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 22,
-                          );
-                        },
+                      child: Consumer<UserProvider>(
+                        builder: (context, userProvider, _) =>
+                            UserAvatar(photoPath: userProvider.userPhotoPath),
                       ),
                     ),
                   ),
@@ -111,7 +109,11 @@ class HomeScreen extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                        const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                         Positioned(
                           right: 0,
                           top: 0,
@@ -151,7 +153,8 @@ class HomeScreen extends StatelessWidget {
                   );
                 }
 
-                if (carProvider.errorMessage != null && carProvider.cars.isEmpty) {
+                if (carProvider.errorMessage != null &&
+                    carProvider.cars.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.all(40.0),
                     child: Column(
@@ -165,9 +168,8 @@ class HomeScreen extends StatelessWidget {
                         const SizedBox(height: 24),
                         Text(
                           carProvider.errorMessage!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: MyCarColors.textSecondary,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: MyCarColors.textSecondary),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
@@ -226,7 +228,8 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 40),
                         FilledButton.icon(
-                          onPressed: () => VehicleModalHelper.showAddVehicleModal(context),
+                          onPressed: () =>
+                              VehicleModalHelper.showAddVehicleModal(context),
                           icon: const Icon(Icons.add, size: 20),
                           label: const Text(
                             'Agregar Vehículo',
@@ -316,11 +319,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildCarThumbnail(Car car) {
-    const fallback = Icon(
-      Icons.directions_car,
-      color: Colors.white,
-      size: 28,
-    );
+    const fallback = Icon(Icons.directions_car, color: Colors.white, size: 28);
     final bytes = VehicleImage.decode(car.imageBase64);
     if (bytes != null) {
       return Image.memory(

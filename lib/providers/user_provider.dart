@@ -121,6 +121,7 @@ class UserProvider extends ChangeNotifier {
         name: _user!.name,
         email: email,
         phone: _user!.phone,
+        photoPath: _user!.photoPath,
       );
       await updateUser(updatedUser);
     }

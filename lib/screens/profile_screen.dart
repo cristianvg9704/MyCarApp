@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../utils/my_car_colors.dart';
 import '../providers/user_provider.dart';
+import '../services/profile_photo_storage.dart';
+import '../widgets/user_avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  /// Dónde se guarda la foto elegida. Inyectable para tests.
+  final ProfilePhotoStorage? photoStorage;
+
+  const ProfileScreen({super.key, this.photoStorage});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -14,13 +18,20 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
+  late final ProfilePhotoStorage _photoStorage =
+      widget.photoStorage ?? ProfilePhotoStorage();
 
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null && mounted) {
         final userProvider = Provider.of<UserProvider>(context, listen: false);
-        await userProvider.updatePhoto(image.path);
+        // Copiar a la app: la ruta temporal del selector puede desaparecer.
+        final storedPath = await _photoStorage.save(
+          image.path,
+          replacing: userProvider.userPhotoPath,
+        );
+        await userProvider.updatePhoto(storedPath);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -123,18 +134,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   labelText: 'Nombre',
                   filled: true,
                   fillColor: MyCarColors.backgroundLight,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MyCarColors.border,
+                      width: 1.5,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MyCarColors.border,
+                      width: 1.5,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.primary, width: 2),
+                    borderSide: BorderSide(
+                      color: MyCarColors.primary,
+                      width: 2,
+                    ),
                   ),
                 ),
                 autofocus: true,
@@ -142,10 +165,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                  child: FilledButton(
+                child: FilledButton(
                   onPressed: () async {
-                    final userProvider = Provider.of<UserProvider>(context, listen: false);
-                    final newName = controller.text.trim().isEmpty ? 'Usuario' : controller.text.trim();
+                    final userProvider = Provider.of<UserProvider>(
+                      context,
+                      listen: false,
+                    );
+                    final newName = controller.text.trim().isEmpty
+                        ? 'Usuario'
+                        : controller.text.trim();
                     await userProvider.updateName(newName);
                     if (mounted) {
                       Navigator.pop(context);
@@ -222,18 +250,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   labelText: 'Correo Electrónico',
                   filled: true,
                   fillColor: MyCarColors.backgroundLight,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MyCarColors.border,
+                      width: 1.5,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MyCarColors.border,
+                      width: 1.5,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.primary, width: 2),
+                    borderSide: BorderSide(
+                      color: MyCarColors.primary,
+                      width: 2,
+                    ),
                   ),
                 ),
                 autofocus: true,
@@ -241,9 +281,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                  child: FilledButton(
+                child: FilledButton(
                   onPressed: () async {
-                    final userProvider = Provider.of<UserProvider>(context, listen: false);
+                    final userProvider = Provider.of<UserProvider>(
+                      context,
+                      listen: false,
+                    );
                     await userProvider.updateEmail(controller.text.trim());
                     if (mounted) {
                       Navigator.pop(context);
@@ -320,18 +363,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   labelText: 'Teléfono',
                   filled: true,
                   fillColor: MyCarColors.backgroundLight,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MyCarColors.border,
+                      width: 1.5,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MyCarColors.border,
+                      width: 1.5,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: MyCarColors.primary, width: 2),
+                    borderSide: BorderSide(
+                      color: MyCarColors.primary,
+                      width: 2,
+                    ),
                   ),
                 ),
                 autofocus: true,
@@ -339,9 +394,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                  child: FilledButton(
+                child: FilledButton(
                   onPressed: () async {
-                    final userProvider = Provider.of<UserProvider>(context, listen: false);
+                    final userProvider = Provider.of<UserProvider>(
+                      context,
+                      listen: false,
+                    );
                     await userProvider.updatePhone(controller.text.trim());
                     if (mounted) {
                       Navigator.pop(context);
@@ -368,7 +426,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       backgroundColor: MyCarColors.backgroundLight,
       body: CustomScrollView(
@@ -396,10 +454,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 4,
-                              ),
+                              border: Border.all(color: Colors.white, width: 4),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.1),
@@ -410,39 +465,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: ClipOval(
                               child: Consumer<UserProvider>(
-                                builder: (context, userProvider, child) {
-                                  final photoPath = userProvider.userPhotoPath;
-                                  if (photoPath != null && photoPath.isNotEmpty) {
-                                    return Image.file(
-                                      File(photoPath),
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Image.asset(
-                                          'assets/images/defaultUser.jpg',
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.person,
-                                              size: 50,
-                                              color: MyCarColors.textSecondary,
-                                            );
-                                          },
-                                        );
-                                      },
-                                    );
-                                  }
-                                  return Image.asset(
-                                    'assets/images/defaultUser.jpg',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(
-                                        Icons.person,
-                                        size: 50,
-                                        color: MyCarColors.textSecondary,
-                                      );
-                                    },
-                                  );
-                                },
+                                builder: (context, userProvider, child) =>
+                                    UserAvatar(
+                                      photoPath: userProvider.userPhotoPath,
+                                      iconSize: 50,
+                                    ),
                               ),
                             ),
                           ),
@@ -463,7 +490,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.2),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -584,11 +613,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: MyCarColors.primaryLight,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
-                    icon,
-                    color: MyCarColors.primary,
-                    size: 24,
-                  ),
+                  child: Icon(icon, color: MyCarColors.primary, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -597,7 +622,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: MyCarColors.textPrimary,
                               letterSpacing: -0.3,
@@ -607,9 +633,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: MyCarColors.textSecondary,
-                              fontSize: 13,
-                            ),
+                          color: MyCarColors.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
