@@ -173,6 +173,7 @@ SpokenNumber? _readWords(List<String> tokens, int start) {
   var total = 0.0;
   var i = start;
   var consumed = false;
+  var afterMillion = false;
 
   while (i < tokens.length) {
     final group = _readGroup(tokens, i);
@@ -188,9 +189,14 @@ SpokenNumber? _readWords(List<String> tokens, int start) {
         total += group.value * 1000000;
         i = group.end + 1;
         consumed = true;
+        afterMillion = true;
         continue;
       }
-      total += group.value;
+      // "un millón doscientos" = 1.200.000: después de millones, un grupo de
+      // 100 a 999 sin "mil" se entiende como miles.
+      total += afterMillion && group.value >= 100
+          ? group.value * 1000
+          : group.value;
       i = group.end;
       consumed = true;
       break;
@@ -205,6 +211,7 @@ SpokenNumber? _readWords(List<String> tokens, int start) {
       total += 1000000;
       i++;
       consumed = true;
+      afterMillion = true;
       continue;
     }
     break;

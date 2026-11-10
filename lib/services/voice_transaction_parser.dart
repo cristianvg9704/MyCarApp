@@ -13,6 +13,9 @@ class VoiceTransactionDraft {
   final double? liters;
   final double? odometerKm;
 
+  /// Vehículo nombrado en la frase ("el Mazda"), si se pudo identificar uno.
+  final String? mentionedCarId;
+
   const VoiceTransactionDraft({
     required this.transcript,
     required this.type,
@@ -22,9 +25,61 @@ class VoiceTransactionDraft {
     required this.date,
     this.liters,
     this.odometerKm,
+    this.mentionedCarId,
   });
 
   bool get hasAmount => amount != null;
+
+  VoiceTransactionDraft _copy({
+    TransactionType? type,
+    Object? category = _keep,
+    Object? amount = _keep,
+    DateTime? date,
+    String? description,
+  }) {
+    final newType = type ?? this.type;
+    final newCategory = identical(category, _keep)
+        ? this.category
+        : category as TransactionCategory?;
+    return VoiceTransactionDraft(
+      transcript: transcript,
+      type: newType,
+      category: newCategory,
+      amount: identical(amount, _keep) ? this.amount : amount as double?,
+      description:
+          description ??
+          VoiceTransactionParser.describe(transcript, newType, newCategory),
+      date: date ?? this.date,
+      liters: liters,
+      odometerKm: odometerKm,
+      mentionedCarId: mentionedCarId,
+    );
+  }
+
+  /// Cambia entre ingreso y egreso. Un ingreso no lleva categoría; un egreso
+  /// sin categoría pasa a "Otros" (o "Combustible" si hay litros).
+  VoiceTransactionDraft withType(TransactionType newType) {
+    if (newType == type) return this;
+    return _copy(
+      type: newType,
+      category: newType == TransactionType.income
+          ? null
+          : (category ??
+                (liters != null
+                    ? TransactionCategory.fuel
+                    : TransactionCategory.other)),
+    );
+  }
+
+  VoiceTransactionDraft withAmount(double? newAmount) =>
+      _copy(amount: newAmount);
+
+  /// Solo tiene efecto en egresos.
+  VoiceTransactionDraft withCategory(TransactionCategory newCategory) =>
+      type == TransactionType.expense ? _copy(category: newCategory) : this;
+
+  VoiceTransactionDraft withDate(DateTime newDate) =>
+      _copy(date: DateTime(newDate.year, newDate.month, newDate.day));
 
   /// Movimiento listo para guardar. Requiere [hasAmount].
   ///
@@ -54,6 +109,21 @@ class VoiceTransactionDraft {
       odometerKm: isFuel || isMaintenance ? odometerKm : null,
     );
   }
+}
+
+const Object _keep = Object();
+
+/// Vehículo del usuario, para reconocer cuál nombra la frase ("el Mazda").
+class VoiceVehicle {
+  final String id;
+  final String brand;
+  final String model;
+
+  const VoiceVehicle({
+    required this.id,
+    required this.brand,
+    required this.model,
+  });
 }
 
 /// Interpreta frases en español (Colombia) como "gasté cincuenta mil en
@@ -108,6 +178,10 @@ class VoiceTransactionParser {
     'vendi',
     'vendimos',
     'facture',
+    'hice',
+    'hicimos',
+    'carrera',
+    'carreras',
   };
 
   static const _fuelWords = {
@@ -118,6 +192,8 @@ class VoiceTransactionParser {
     'tanquee',
     'tanqueamos',
     'tanquear',
+    'tanqueada',
+    'tanqueadas',
     'acpm',
     'diesel',
     'gas',
@@ -213,6 +289,7 @@ class VoiceTransactionParser {
     String transcript, {
     DateTime? now,
     TransactionType defaultType = TransactionType.income,
+    List<VoiceVehicle> vehicles = const [],
   }) {
     final reference = now ?? DateTime.now();
     final today = DateTime(reference.year, reference.month, reference.day);
@@ -293,8 +370,9 @@ class VoiceTransactionParser {
       type: type,
       category: category,
       amount: amount,
-      description: _describe(transcript, type, category),
+      description: describe(transcript, type, category),
       date: date,
+      mentionedCarId: _mentionedVehicle(tokens, vehicles),
       liters: category == TransactionCategory.fuel ? liters : null,
       odometerKm:
           category == TransactionCategory.fuel ||
@@ -398,7 +476,37 @@ class VoiceTransactionParser {
     return candidate;
   }
 
-  static String _describe(
+  /// Vehículo que nombra la frase: el que más palabras de su marca/modelo
+  /// menciona. Si hay empate o ninguno, null (se usa el vehículo actual).
+  static String? _mentionedVehicle(
+    List<String> tokens,
+    List<VoiceVehicle> vehicles,
+  ) {
+    if (vehicles.isEmpty) return null;
+    final spoken = tokens.toSet();
+    String? best;
+    var bestScore = 0;
+    var tie = false;
+    for (final vehicle in vehicles) {
+      final names = {
+        ...tokenizeSpanish('${vehicle.brand} ${vehicle.model}'),
+      }.where((t) => t.length >= 3 && !RegExp(r'^\d+$').hasMatch(t));
+      final score = names.where(spoken.contains).length;
+      if (score == 0) continue;
+      if (score > bestScore) {
+        best = vehicle.id;
+        bestScore = score;
+        tie = false;
+      } else if (score == bestScore) {
+        tie = true;
+      }
+    }
+    return tie ? null : best;
+  }
+
+  /// Texto descriptivo del movimiento: la categoría en combustible y
+  /// mantenimiento; en lo demás, la frase dicha.
+  static String describe(
     String transcript,
     TransactionType type,
     TransactionCategory? category,

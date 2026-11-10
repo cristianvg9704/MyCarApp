@@ -335,4 +335,273 @@ void main() {
       expect(t.date, DateTime(2026, 11, 9));
     });
   });
+
+  group('frases del rediseño (es-CO)', () {
+    final now = DateTime(2026, 11, 10, 12); // martes
+
+    VoiceTransactionDraft parse(
+      String text, {
+      List<VoiceVehicle> vehicles = const [],
+    }) => VoiceTransactionParser.parse(
+      text,
+      now: now,
+      defaultType: TransactionType.expense,
+      vehicles: vehicles,
+    );
+
+    group('los chips de ejemplo', () {
+      test('"Ingreso de 150 mil"', () {
+        final d = parse('Ingreso de 150 mil');
+        expect(d.type, TransactionType.income);
+        expect(d.amount, 150000);
+        expect(d.category, isNull);
+      });
+
+      test('"Gasolina 60 mil"', () {
+        final d = parse('Gasolina 60 mil');
+        expect(d.type, TransactionType.expense);
+        expect(d.category, TransactionCategory.fuel);
+        expect(d.amount, 60000);
+      });
+
+      test('"Cambio de aceite 120 mil ayer"', () {
+        final d = parse('Cambio de aceite 120 mil ayer');
+        expect(d.type, TransactionType.expense);
+        expect(d.category, TransactionCategory.maintenance);
+        expect(d.amount, 120000);
+        expect(d.date, DateTime(2026, 11, 9));
+      });
+    });
+
+    group('montos', () {
+      const cases = {
+        'gasolina 60 mil': 60000.0,
+        'gasté 60.000 en gasolina': 60000.0,
+        'sesenta mil de gasolina': 60000.0,
+        'ciento cincuenta mil de ingreso': 150000.0,
+        '1,2 millones de repuesto': 1200000.0,
+        'un millón doscientos de taller': 1200000.0,
+        'un millón doscientos cincuenta de taller': 1250000.0,
+        'dos millones de ingreso': 2000000.0,
+      };
+      cases.forEach((phrase, amount) {
+        test('"$phrase" → $amount', () {
+          expect(parse(phrase).amount, amount);
+        });
+      });
+    });
+
+    group('tipo', () {
+      const income = [
+        'ingreso de 80 mil',
+        'gané 200 mil hoy',
+        'hice una carrera de 45 mil',
+        'me pagaron 80 mil',
+        'carrera 25 mil',
+      ];
+      const expense = [
+        'gasto de 40 mil',
+        'pagué 30 mil',
+        'gasolina 60 mil',
+        'tanqueé 70 mil',
+        'aceite 90 mil',
+        'peaje 12 mil',
+        'lavada 30 mil',
+        'parqueadero 8 mil',
+        'repuesto 90 mil',
+        'taller 150 mil',
+      ];
+      for (final phrase in income) {
+        test('"$phrase" es ingreso', () {
+          expect(parse(phrase).type, TransactionType.income);
+        });
+      }
+      for (final phrase in expense) {
+        test('"$phrase" es gasto', () {
+          expect(parse(phrase).type, TransactionType.expense);
+        });
+      }
+
+      test('si no queda claro, es gasto', () {
+        expect(parse('cuarenta mil').type, TransactionType.expense);
+      });
+    });
+
+    group('categoría', () {
+      const cases = {
+        'gasolina 60 mil': TransactionCategory.fuel,
+        'tanqueada 70 mil': TransactionCategory.fuel,
+        'aceite 90 mil': TransactionCategory.maintenance,
+        'taller 150 mil': TransactionCategory.maintenance,
+        'repuesto 90 mil': TransactionCategory.maintenance,
+        'peaje 12 mil': TransactionCategory.other,
+        'parqueadero 8 mil': TransactionCategory.other,
+        'lavada 30 mil': TransactionCategory.other,
+      };
+      cases.forEach((phrase, category) {
+        test('"$phrase" → ${category.name}', () {
+          expect(parse(phrase).category, category);
+        });
+      });
+    });
+
+    group('fecha', () {
+      test('por defecto es hoy', () {
+        expect(parse('gasolina 60 mil').date, DateTime(2026, 11, 10));
+      });
+      test('hoy', () {
+        expect(parse('gasolina 60 mil hoy').date, DateTime(2026, 11, 10));
+      });
+      test('ayer', () {
+        expect(parse('gasolina 60 mil ayer').date, DateTime(2026, 11, 9));
+      });
+      test('antier', () {
+        expect(parse('peaje 12 mil antier').date, DateTime(2026, 11, 8));
+      });
+      test('el lunes (el pasado más reciente)', () {
+        expect(parse('lavada 30 mil el lunes').date, DateTime(2026, 11, 9));
+      });
+      test('el martes dicho un martes es el de la semana pasada', () {
+        expect(parse('lavada 30 mil el martes').date, DateTime(2026, 11, 3));
+      });
+      test('el 5 de noviembre', () {
+        expect(
+          parse('parqueadero 8 mil el 5 de noviembre').date,
+          DateTime(2026, 11, 5),
+        );
+      });
+    });
+
+    group('vehículo', () {
+      const mazda = VoiceVehicle(id: 'mazda', brand: 'Mazda', model: '3');
+      const duster = VoiceVehicle(
+        id: 'duster',
+        brand: 'Renault',
+        model: 'Duster',
+      );
+      const corolla = VoiceVehicle(
+        id: 'corolla',
+        brand: 'Toyota',
+        model: 'Corolla',
+      );
+      const yaris = VoiceVehicle(id: 'yaris', brand: 'Toyota', model: 'Yaris');
+
+      test('sin nombrar ninguno no hay vehículo mencionado', () {
+        final d = parse('gasolina 60 mil', vehicles: [mazda, duster]);
+        expect(d.mentionedCarId, isNull);
+      });
+
+      test('"el Mazda"', () {
+        final d = parse('gasolina 60 mil del Mazda', vehicles: [mazda, duster]);
+        expect(d.mentionedCarId, 'mazda');
+      });
+
+      test('"la Duster"', () {
+        final d = parse('aceite 120 mil la Duster', vehicles: [mazda, duster]);
+        expect(d.mentionedCarId, 'duster');
+      });
+
+      test('por el modelo o por la marca', () {
+        expect(
+          parse(
+            'peaje 12 mil renault',
+            vehicles: [mazda, duster],
+          ).mentionedCarId,
+          'duster',
+        );
+      });
+
+      test('la marca repetida es ambigua, pero el modelo desempata', () {
+        expect(
+          parse(
+            'gasolina 60 mil toyota',
+            vehicles: [corolla, yaris],
+          ).mentionedCarId,
+          isNull,
+        );
+        expect(
+          parse(
+            'gasolina 60 mil del Yaris',
+            vehicles: [corolla, yaris],
+          ).mentionedCarId,
+          'yaris',
+        );
+        expect(
+          parse(
+            'gasolina 60 mil del toyota yaris',
+            vehicles: [corolla, yaris],
+          ).mentionedCarId,
+          'yaris',
+        );
+      });
+
+      test('ignora acentos y mayúsculas', () {
+        const v = VoiceVehicle(id: 'x', brand: 'Citroën', model: 'C4');
+        expect(
+          parse('peaje 12 mil CITROEN', vehicles: [v]).mentionedCarId,
+          'x',
+        );
+      });
+    });
+  });
+
+  group('VoiceTransactionDraft: ediciones de la revisión', () {
+    final now = DateTime(2026, 11, 10, 12);
+    VoiceTransactionDraft fuel() => VoiceTransactionParser.parse(
+      'gasolina 60 mil 10 litros',
+      now: now,
+      defaultType: TransactionType.expense,
+    );
+
+    test('withType a ingreso quita la categoría y los litros al guardar', () {
+      final d = fuel().withType(TransactionType.income);
+
+      expect(d.type, TransactionType.income);
+      expect(d.category, isNull);
+      expect(d.description, 'Gasolina 60 mil 10 litros');
+      final t = d.toTransaction(userId: 'u', carId: 'c');
+      expect(t.category, isNull);
+      expect(t.liters, isNull);
+    });
+
+    test('withType a egreso desde ingreso usa "Otros"', () {
+      final income = VoiceTransactionParser.parse(
+        'ingreso de 150 mil',
+        now: now,
+      );
+
+      final d = income.withType(TransactionType.expense);
+
+      expect(d.type, TransactionType.expense);
+      expect(d.category, TransactionCategory.other);
+    });
+
+    test('withCategory actualiza la categoría y la descripción automática', () {
+      final d = fuel().withCategory(TransactionCategory.maintenance);
+
+      expect(d.category, TransactionCategory.maintenance);
+      expect(d.description, 'Mantenimiento');
+    });
+
+    test('withCategory no hace nada en un ingreso', () {
+      final income = VoiceTransactionParser.parse(
+        'ingreso de 150 mil',
+        now: now,
+      );
+
+      expect(income.withCategory(TransactionCategory.fuel).category, isNull);
+    });
+
+    test('withAmount y withDate cambian solo eso', () {
+      final d = fuel().withAmount(75000).withDate(DateTime(2026, 11, 1, 18));
+
+      expect(d.amount, 75000);
+      expect(d.date, DateTime(2026, 11, 1));
+      expect(d.category, TransactionCategory.fuel);
+    });
+
+    test('withAmount(null) deja el monto vacío', () {
+      expect(fuel().withAmount(null).hasAmount, isFalse);
+    });
+  });
 }

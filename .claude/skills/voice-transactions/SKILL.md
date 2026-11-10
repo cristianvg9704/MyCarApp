@@ -43,7 +43,7 @@ pendiente (ver al final).
 
 ## Reglas del parser (español de Colombia)
 - **Tipo:** verbos fuertes de egreso (gasté, pagué, compré, tanqueé, eché…) o de ingreso (me pagaron, ingreso, cobré, gané,
-  recibí, vendí…). Si aparecen ambos gana el primero. Sin verbos, una palabra de categoría implica egreso; si no, se usa el
+  recibí, vendí, hice, carrera…). Si aparecen ambos gana el primero. Sin verbos, una palabra de categoría implica egreso; si no, se usa el
   tipo actual del formulario.
 - **Categoría (solo egresos):** combustible (gasolina, tanqueo, acpm, gas, litros, galones), mantenimiento (aceite, mecánico,
   taller, llantas, frenos, filtro, revisión…), otros (peaje, parqueadero, lavado, multa, soat…). Sin palabra clave: otros
@@ -53,6 +53,10 @@ pendiente (ver al final).
   Si hay varios, prefiere el marcado con `$` o "pesos"; si no, el mayor.
 - **Litros / galones:** `10 litros`; los galones se convierten (1 gal = 3,785 L, 2 decimales).
 - **Kilometraje:** `45200 km`, `45 mil kilómetros`, `kilometraje 45200`. Solo se conserva en combustible y mantenimiento.
+- **Millones:** después de "millón/millones", un grupo de 100 a 999 sin "mil" se entiende como miles ("un millón doscientos" = 1.200.000).
+- **Vehículo:** `VoiceVehicle(id, brand, model)` + `parse(vehicles:)`; `mentionedCarId` es el vehículo con más palabras de marca/modelo
+  en la frase ("el Mazda", "la Duster"); empate o ninguno → null (se usa el vehículo actual).
+- **Ediciones:** `VoiceTransactionDraft.withType/withAmount/withCategory/withDate` (la pantalla de revisión edita el borrador).
 - **Fecha:** hoy (por defecto), ayer, anteayer / antier / antes de ayer, `hace N días/semanas`, día de la semana (la
   ocurrencia pasada más reciente), `el 15 de octubre` (si queda en el futuro, año anterior).
 - **Descripción:** combustible/mantenimiento → nombre de la categoría; el resto → la frase con mayúscula inicial.
