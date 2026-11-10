@@ -34,3 +34,11 @@ Un solo origen de imágenes en `assets/icons/` genera todos los tamaños nativos
 ## Cómo se prueba
 No hay tests (son imágenes). Verificado con `xcrun actool` sobre `ios/Runner/Assets.xcassets` y `flutter build apk --debug`;
 visualmente: reinstalar en el iPhone/Android y ver el icono en la pantalla de inicio.
+
+## Nombre visible bajo el ícono
+Es **"MyCar App"** en iOS (`CFBundleDisplayName` en `ios/Runner/Info.plist`) y en Android (`android:label` en
+`AndroidManifest.xml`). `CFBundleName` y el nombre del paquete (`new_my_car_app`) son internos: no se ven y no se
+cambian. El nombre de la ficha en App Store Connect / Google Play es independiente y se edita en cada consola.
+Un cambio de nombre requiere compilar y subir un build nuevo (subir el número de build en `pubspec.yaml`).
+Test: `test/config/app_identity_test.dart`.
+
