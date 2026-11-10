@@ -48,4 +48,50 @@ void main() {
       );
     });
   });
+
+  group('subscriptionManagementLaunchUrls', () {
+    test('iOS: primero la app App Store (itms-apps) y luego la web', () {
+      expect(subscriptionManagementLaunchUrls(platform: TargetPlatform.iOS), [
+        'itms-apps://apps.apple.com/account/subscriptions',
+        appStoreSubscriptionsUrl,
+      ]);
+    });
+
+    test('iOS: conserva la ruta y los parámetros de la URL de RevenueCat', () {
+      expect(
+        subscriptionManagementLaunchUrls(
+          managementUrl: 'https://apps.apple.com/account/subscriptions?x=1',
+          platform: TargetPlatform.iOS,
+        ),
+        [
+          'itms-apps://apps.apple.com/account/subscriptions?x=1',
+          'https://apps.apple.com/account/subscriptions?x=1',
+        ],
+      );
+    });
+
+    test('iOS: una URL que no es de la App Store no se transforma', () {
+      expect(
+        subscriptionManagementLaunchUrls(
+          managementUrl: 'https://example.com/manage',
+          platform: TargetPlatform.iOS,
+        ),
+        ['https://example.com/manage'],
+      );
+    });
+
+    test('Android: solo la página de Google Play', () {
+      expect(
+        subscriptionManagementLaunchUrls(platform: TargetPlatform.android),
+        [playStoreSubscriptionsUrl],
+      );
+    });
+
+    test('sin tienda (escritorio, web) no hay URLs', () {
+      expect(
+        subscriptionManagementLaunchUrls(platform: TargetPlatform.macOS),
+        isEmpty,
+      );
+    });
+  });
 }

@@ -119,18 +119,20 @@ class SubscriptionProvider extends ChangeNotifier {
   /// Abre la pantalla de la tienda donde el usuario cancela o cambia su plan.
   /// Devuelve `false` si no hay tienda disponible o no se pudo abrir.
   Future<bool> openManageSubscription() async {
-    final url = subscriptionManagementUrl(
+    final urls = subscriptionManagementLaunchUrls(
       managementUrl: await _fetchManagementUrl(),
       platform: _platform ?? defaultTargetPlatform,
     );
-    if (url == null) return false;
 
-    try {
-      return await _launchUri(Uri.parse(url));
-    } catch (e) {
-      debugPrint('❌ No se pudo abrir la administración de suscripción: $e');
-      return false;
+    // En iOS primero la app App Store (itms-apps) y, si no se puede, la web.
+    for (final url in urls) {
+      try {
+        if (await _launchUri(Uri.parse(url))) return true;
+      } catch (e) {
+        debugPrint('❌ No se pudo abrir $url: $e');
+      }
     }
+    return false;
   }
 
   Future<void> checkSubscriptionStatus() async {

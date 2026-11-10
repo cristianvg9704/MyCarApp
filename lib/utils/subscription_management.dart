@@ -29,3 +29,29 @@ String? subscriptionManagementUrl({
       ? appStoreSubscriptionsUrl
       : playStoreSubscriptionsUrl;
 }
+
+/// URLs a probar, en orden, para abrir la administración de la suscripción.
+///
+/// En iOS, `https://apps.apple.com/...` puede abrirse en Safari. El esquema
+/// `itms-apps://` abre **directamente la app App Store**, así que se prueba
+/// primero; si el dispositivo no puede (el simulador no tiene App Store), se cae
+/// a la URL web. En Android hay una sola. Lista vacía donde no hay tienda.
+List<String> subscriptionManagementLaunchUrls({
+  String? managementUrl,
+  required TargetPlatform platform,
+}) {
+  final url = subscriptionManagementUrl(
+    managementUrl: managementUrl,
+    platform: platform,
+  );
+  if (url == null) return const [];
+
+  final uri = Uri.tryParse(url);
+  if (platform == TargetPlatform.iOS &&
+      uri != null &&
+      uri.scheme == 'https' &&
+      uri.host == 'apps.apple.com') {
+    return [uri.replace(scheme: 'itms-apps').toString(), url];
+  }
+  return [url];
+}

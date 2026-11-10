@@ -83,6 +83,17 @@ Una sola regla pura, `appRedirect` (`lib/utils/app_redirect.dart`, con tests), q
 - **Es solo del cliente**: la base de datos no impone el tope (un cliente modificado podría saltarlo). Un trigger/RLS en
   Supabase que cuente `cars` por usuario lo haría cumplir en el servidor (pendiente).
 
+## "Administrar suscripción" (cancelar o cambiar de plan)
+Las tiendas no permiten cancelar desde dentro de la app: solo se abre su pantalla de suscripciones
+(`SubscriptionProvider.openManageSubscription`, `lib/utils/subscription_management.dart`).
+- **iOS:** se intenta primero `itms-apps://apps.apple.com/account/subscriptions`, que abre **directamente la app App Store**
+  (en vez de Safari); si no se puede (el **simulador no tiene App Store**) se cae a `https://apps.apple.com/account/subscriptions`.
+  Si RevenueCat entrega `managementURL`, se usa esa.
+- **Android:** `https://play.google.com/store/account/subscriptions`.
+- Si nada abre, la pantalla muestra un aviso para hacerlo desde los ajustes de la cuenta.
+- Alternativa más nativa (pendiente): la hoja de StoreKit `AppStore.showManageSubscriptions(in:)` (iOS 15+) dentro de la app,
+  que requiere un `MethodChannel` en Swift (`purchases_flutter` 10.x no la expone).
+
 ## Pantalla de planes (`SubscriptionScreen`)
 - **Tarjetas:** una por paquete de la oferta (Mensual / Anual) con `planFeatures`. El **precio sale de la tienda**
   (`storeProduct.priceString`), nunca escrito a mano; debajo, el texto de renovación automática.
