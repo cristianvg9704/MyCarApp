@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/car.dart';
 import '../models/car_transaction.dart';
 import '../models/alert.dart';
@@ -191,25 +192,25 @@ class DatabaseHelper {
     if (!force) {
       final existingCars = await getAllCars();
       if (existingCars.length >= 10) {
-        print('📊 Ya existen ${existingCars.length} carros en la base de datos. No se generarán datos de prueba.');
-        print('💡 Para forzar la generación, usa generateTestData(force: true)');
+        debugPrint('📊 Ya existen ${existingCars.length} carros en la base de datos. No se generarán datos de prueba.');
+        debugPrint('💡 Para forzar la generación, usa generateTestData(force: true)');
         return;
       } else if (existingCars.isNotEmpty) {
-        print('📊 Existen ${existingCars.length} carros. Generando datos adicionales hasta completar 10...');
+        debugPrint('📊 Existen ${existingCars.length} carros. Generando datos adicionales hasta completar 10...');
       }
     } else {
       // Si force es true, eliminar datos existentes primero
-      print('🗑️ Eliminando datos existentes...');
+      debugPrint('🗑️ Eliminando datos existentes...');
       final existingCars = await getAllCars();
       for (final car in existingCars) {
         if (car.id != null) {
           await deleteCar(car.id!);
         }
       }
-      print('✅ Datos existentes eliminados');
+      debugPrint('✅ Datos existentes eliminados');
     }
 
-    print('🔧 Generando datos de prueba...');
+    debugPrint('🔧 Generando datos de prueba...');
     
     final brands = ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Hyundai'];
     final models = [
@@ -245,11 +246,11 @@ class DatabaseHelper {
     final carsToGenerate = force ? 10 : (10 - existingCount);
     
     if (carsToGenerate <= 0) {
-      print('✅ Ya hay 10 o más carros. No se generarán más.');
+      debugPrint('✅ Ya hay 10 o más carros. No se generarán más.');
       return;
     }
     
-    print('📝 Generando $carsToGenerate carros nuevos...');
+    debugPrint('📝 Generando $carsToGenerate carros nuevos...');
     final carIds = <String>[];
 
     // Generar los carros faltantes
@@ -277,7 +278,7 @@ class DatabaseHelper {
 
       final carId = await insertCar(car);
       carIds.add(carId);
-      print('✅ Carro creado: $brand $model ($year) - ID: $carId');
+      debugPrint('✅ Carro creado: $brand $model ($year) - ID: $carId');
     }
 
     // Generar 10 ingresos por cada carro
@@ -312,15 +313,15 @@ class DatabaseHelper {
           ),
         );
       }
-      print('✅ 10 ingresos y 10 egresos creados para carro ID: $carId');
+      debugPrint('✅ 10 ingresos y 10 egresos creados para carro ID: $carId');
     }
 
-    print('🎉 Datos de prueba generados exitosamente: ${carIds.length} carros y ${carIds.length * 10} ingresos');
+    debugPrint('🎉 Datos de prueba generados exitosamente: ${carIds.length} carros y ${carIds.length * 10} ingresos');
     
     // Verificar que los datos se guardaron correctamente
     final verifyCars = await getAllCars();
     final verifyIncomes = await getAllTransactions();
-    print('✅ Verificación: ${verifyCars.length} carros y ${verifyIncomes.length} movimientos en la BD');
+    debugPrint('✅ Verificación: ${verifyCars.length} carros y ${verifyIncomes.length} movimientos en la BD');
   }
 
   // ============================================
@@ -565,9 +566,9 @@ class DatabaseHelper {
     // Solo verificar que Supabase esté inicializado
     try {
       final userId = _requireAuth();
-      print('✅ DatabaseHelper inicializado. Usuario autenticado: $userId');
+      debugPrint('✅ DatabaseHelper inicializado. Usuario autenticado: $userId');
     } catch (e) {
-      print('⚠️ DatabaseHelper inicializado pero sin usuario autenticado. Las operaciones requerirán autenticación.');
+      debugPrint('⚠️ DatabaseHelper inicializado pero sin usuario autenticado. Las operaciones requerirán autenticación.');
     }
   }
 }

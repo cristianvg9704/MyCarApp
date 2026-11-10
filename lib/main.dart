@@ -41,10 +41,14 @@ import 'services/subscription_service.dart';
 import 'config/app_env.dart';
 import 'config/supabase_config.dart';
 import 'config/app_config.dart';
+import 'utils/app_logging.dart';
 
 void main() async {
   // Asegurar que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Los logs solo se ven al depurar (en release debugPrint queda en silencio)
+  configureLogging();
 
   // Capturar errores async no controlados (evita cierre silencioso)
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -71,19 +75,19 @@ void main() async {
   // Inicializar Supabase
   try {
     await SupabaseConfig.initialize();
-    print('✅ Supabase inicializado correctamente');
+    debugPrint('✅ Supabase inicializado correctamente');
   } catch (e) {
-    print('⚠️ Error al inicializar Supabase: $e');
-    print('⚠️ Verifica SUPABASE_URL y SUPABASE_ANON_KEY en .env');
+    debugPrint('⚠️ Error al inicializar Supabase: $e');
+    debugPrint('⚠️ Verifica SUPABASE_URL y SUPABASE_ANON_KEY en .env');
   }
 
   // Inicializar servicio de notificaciones
   try {
     await NotificationService.instance.initialize();
     await NotificationService.instance.requestPermissions();
-    print('✅ Servicio de notificaciones inicializado correctamente');
+    debugPrint('✅ Servicio de notificaciones inicializado correctamente');
   } catch (e) {
-    print('⚠️ Error al inicializar notificaciones: $e');
+    debugPrint('⚠️ Error al inicializar notificaciones: $e');
   }
 
   // Inicializar Firebase Cloud Messaging (push de novedades/noticias)
@@ -92,19 +96,19 @@ void main() async {
   // la app sigue funcionando (igual que Supabase/RevenueCat arriba).
   try {
     await PushNotificationService.instance.initialize();
-    print('✅ Push notifications (FCM) inicializado correctamente');
+    debugPrint('✅ Push notifications (FCM) inicializado correctamente');
   } catch (e) {
-    print('⚠️ Error al inicializar FCM: $e');
-    print('⚠️ Verifica que google-services.json/GoogleService-Info.plist estén agregados al proyecto');
+    debugPrint('⚠️ Error al inicializar FCM: $e');
+    debugPrint('⚠️ Verifica que google-services.json/GoogleService-Info.plist estén agregados al proyecto');
   }
 
   // Inicializar RevenueCat (SubscriptionService)
   try {
     await SubscriptionService.instance.initialize();
-    print('✅ RevenueCat inicializado correctamente');
+    debugPrint('✅ RevenueCat inicializado correctamente');
   } catch (e) {
-    print('⚠️ Error al inicializar RevenueCat: $e');
-    print('⚠️ Las suscripciones pueden no funcionar correctamente');
+    debugPrint('⚠️ Error al inicializar RevenueCat: $e');
+    debugPrint('⚠️ Las suscripciones pueden no funcionar correctamente');
   }
 
   // Inicializar la base de datos antes de ejecutar la app
@@ -115,7 +119,7 @@ void main() async {
 
 Future<void> _initializeDatabase() async {
   try {
-    print('🚀 Inicializando base de datos...');
+    debugPrint('🚀 Inicializando base de datos...');
     final dbHelper = DatabaseHelper.instance;
     
     // Verificar si Supabase está inicializado antes de intentar conectarse
@@ -128,27 +132,27 @@ Future<void> _initializeDatabase() async {
           throw Exception('Timeout al conectar con Supabase. Verifica tu conexión a internet.');
         },
       );
-      print('✅ Conexión con Supabase verificada');
+      debugPrint('✅ Conexión con Supabase verificada');
     } catch (e) {
-      print('⚠️ No se pudo conectar con Supabase: $e');
-      print('⚠️ La aplicación funcionará en modo offline. Algunas funciones pueden estar limitadas.');
-      print('⚠️ Verifica:');
-      print('   1. Tu conexión a internet');
-      print('   2. Que el proyecto de Supabase esté activo');
-      print('   3. Que SUPABASE_URL en .env sea correcta');
-      print('   4. Que el proyecto Supabase no haya sido pausado o eliminado');
+      debugPrint('⚠️ No se pudo conectar con Supabase: $e');
+      debugPrint('⚠️ La aplicación funcionará en modo offline. Algunas funciones pueden estar limitadas.');
+      debugPrint('⚠️ Verifica:');
+      debugPrint('   1. Tu conexión a internet');
+      debugPrint('   2. Que el proyecto de Supabase esté activo');
+      debugPrint('   3. Que SUPABASE_URL en .env sea correcta');
+      debugPrint('   4. Que el proyecto Supabase no haya sido pausado o eliminado');
       // No lanzar el error, permitir que la app continúe
       return;
     }
     
     await dbHelper.initialize(); // Inicialización explícita
-    print('✅ Base de datos inicializada correctamente');
+    debugPrint('✅ Base de datos inicializada correctamente');
     
     // Nota: No generamos datos de prueba aquí porque requiere autenticación
     // Los datos se generarán cuando el usuario inicie sesión
   } catch (e, stackTrace) {
-    print('❌ Error al inicializar la base de datos: $e');
-    print('Stack trace: $stackTrace');
+    debugPrint('❌ Error al inicializar la base de datos: $e');
+    debugPrint('Stack trace: $stackTrace');
     // No lanzar el error, permitir que la app continúe
     // Por ejemplo, mostrar un diálogo de error o cerrar la app
   }
@@ -165,14 +169,14 @@ void _setupBasicErrorHandling() {
 void _logError(String type, dynamic error, StackTrace? stack) {
   final timestamp = DateTime.now().toIso8601String();
 
-  print('========================================');
-  print('🚨 ERROR CAPTURADO GLOBALMENTE 🚨');
-  print('========================================');
-  print('Tipo: $type');
-  print('Timestamp: $timestamp');
-  print('Error: $error');
-  print('Stack Trace: $stack');
-  print('========================================');
+  debugPrint('========================================');
+  debugPrint('🚨 ERROR CAPTURADO GLOBALMENTE 🚨');
+  debugPrint('========================================');
+  debugPrint('Tipo: $type');
+  debugPrint('Timestamp: $timestamp');
+  debugPrint('Error: $error');
+  debugPrint('Stack Trace: $stack');
+  debugPrint('========================================');
 
   // Aquí podrías agregar lógica para:
   // - Enviar el error a un servicio de crash reporting (Firebase Crashlytics, Sentry, etc.)

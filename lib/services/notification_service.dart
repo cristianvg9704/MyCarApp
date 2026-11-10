@@ -16,7 +16,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
   bool _testMode = false; // Modo de prueba: programa notificaciones para unos segundos después (false = modo producción)
-  Timer? _pendingNotificationsTimer; // Timer para consultar notificaciones pendientes cada 20 segundos
 
   /// Inicializa el servicio de notificaciones
   Future<void> initialize() async {
@@ -95,9 +94,6 @@ class NotificationService {
     }
 
     _initialized = true;
-
-    // Iniciar monitor de notificaciones pendientes (cada 20 segundos)
-    startPendingNotificationsMonitor();
   }
 
   /// Verifica si ya se tienen permisos de notificaciones (sin solicitarlos)
@@ -972,96 +968,5 @@ class NotificationService {
       debugPrint('Error obteniendo notificaciones pendientes: $e');
       return [];
     }
-  }
-
-  /// Inicia un timer que consulta cada 20 segundos si las notificaciones están pendientes
-  /// y muestra logs con el estado y la hora de ejecución
-  void startPendingNotificationsMonitor() {
-    // Cancelar timer existente si hay uno
-    stopPendingNotificationsMonitor();
-
-    debugPrint(
-      '🔄 Iniciando monitor de notificaciones pendientes (cada 20 segundos)',
-    );
-
-    _pendingNotificationsTimer = Timer.periodic(const Duration(seconds: 20), (
-      timer,
-    ) async {
-      await _checkAndLogPendingNotifications();
-    });
-
-    // Ejecutar inmediatamente la primera vez
-    _checkAndLogPendingNotifications();
-  }
-
-  /// Detiene el monitor de notificaciones pendientes
-  void stopPendingNotificationsMonitor() {
-    if (_pendingNotificationsTimer != null) {
-      _pendingNotificationsTimer!.cancel();
-      _pendingNotificationsTimer = null;
-      debugPrint('⏹️ Monitor de notificaciones pendientes detenido');
-    }
-  }
-
-  /// Consulta y muestra logs de todas las notificaciones pendientes
-  Future<void> _checkAndLogPendingNotifications() async {
-    if (!_initialized) {
-      await initialize();
-    }
-
-    try {
-      final now = DateTime.now();
-      final pendingNotifications = await _notifications
-          .pendingNotificationRequests();
-
-      debugPrint('');
-      debugPrint('═══════════════════════════════════════════════════════════');
-      debugPrint(
-        '📋 CONSULTA DE NOTIFICACIONES PENDIENTES - ${_formatDateTime(now)}',
-      );
-      debugPrint('═══════════════════════════════════════════════════════════');
-      debugPrint(
-        'Total de notificaciones pendientes: ${pendingNotifications.length}',
-      );
-      debugPrint('');
-
-      if (pendingNotifications.isEmpty) {
-        debugPrint('⚠️ No hay notificaciones pendientes en este momento');
-      } else {
-        for (final notification in pendingNotifications) {
-          // Si está en la lista de pendientes, está pendiente
-          const String status = '✅ PENDIENTE';
-
-          // Nota: PendingNotificationRequest no incluye la fecha programada directamente
-          // La fecha está programada en el sistema operativo pero no es accesible desde aquí
-          // Podríamos obtenerla del payload (alert.id) y buscar la alerta en la BD si es necesario
-
-          debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          debugPrint('ID: ${notification.id}');
-          debugPrint('Estado: $status');
-          debugPrint('Título: ${notification.title ?? "Sin título"}');
-          debugPrint('Cuerpo: ${notification.body ?? "Sin cuerpo"}');
-          debugPrint(
-            'Payload (Alert ID): ${notification.payload ?? "Sin payload"}',
-          );
-          debugPrint('Hora de consulta: ${_formatDateTime(now)}');
-          debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        }
-      }
-
-      debugPrint('');
-      debugPrint('═══════════════════════════════════════════════════════════');
-      debugPrint('Próxima consulta en 20 segundos...');
-      debugPrint('═══════════════════════════════════════════════════════════');
-      debugPrint('');
-    } catch (e) {
-      debugPrint('❌ Error consultando notificaciones pendientes: $e');
-    }
-  }
-
-  /// Formatea una fecha/hora para mostrar en logs
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} '
-        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}';
   }
 }
