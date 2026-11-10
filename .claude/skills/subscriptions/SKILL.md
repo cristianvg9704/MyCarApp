@@ -36,3 +36,21 @@ Vende el plan **MyCarApp Pro** (mensual / anual) con RevenueCat y permite al usu
 - `flutter test test/utils/subscription_management_test.dart test/providers/subscription_provider_test.dart`.
 - Manual (iPhone, con suscripción sandbox activa): Ajustes → Administrar suscripción → debe abrir la pantalla
   de suscripciones de Apple, donde se cancela.
+
+## Pantalla de planes (`SubscriptionScreen`)
+La lógica de qué plan se marca y qué hace el botón es pura y vive en `lib/utils/subscription_plans.dart`
+(`currentPlanId`, `selectedPlanId`, `actionFor`, `isMonthlyPackage`, `isYearlyPackage`).
+- **Plan marcado:** lo que el usuario tocó; mientras no toque nada, **el plan que ya tiene** (`SubscriptionProvider.currentTier`):
+  gratuito, mensual o anual. Nunca se marca el gratuito por defecto a alguien que ya compró (era el bug). Si llega el plan
+  después de abrir la pantalla, la selección se actualiza sola.
+- **"PLAN ACTUAL":** insignia en la tarjeta del plan que tiene el usuario (también en el gratuito si no ha comprado).
+- **Botón principal según el caso:**
+  | Situación | Botón |
+  |---|---|
+  | Gratuito, plan gratuito marcado | "Continuar con Plan Gratuito" |
+  | Gratuito, plan de pago marcado | "Suscribirse Ahora" |
+  | Premium, su plan marcado | "Administrar suscripción" (abre la tienda; `openManageSubscription`) |
+  | Premium, el otro plan marcado | "Cambiar a plan Anual / Mensual" (compra; ambos van en el mismo grupo de suscripciones) |
+  | Premium, plan gratuito marcado | "Administrar suscripción" + aviso: para volver al gratuito se cancela en la tienda |
+- Un premium cuyo paquete no está en la oferta actual no tiene nada marcado (no se adivina).
+- Tests: `test/utils/subscription_plans_test.dart` y `test/widgets/subscription_screen_test.dart` (proveedor falso).

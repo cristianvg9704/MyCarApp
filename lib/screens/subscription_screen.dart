@@ -5,6 +5,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/subscription_provider.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/subscription_plans.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -14,7 +15,8 @@ class SubscriptionScreen extends StatefulWidget {
 }
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
-  Package? _selectedPackage;
+  /// Plan que el usuario tocó. Mientras sea null se marca el plan que ya tiene.
+  String? _chosenPlanId;
   bool _isFirstTime = false;
 
   @override
@@ -83,6 +85,41 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
+  String _actionLabel(PlanAction action, Package? selected) {
+    switch (action) {
+      case PlanAction.continueFree:
+        return 'Continuar con Plan Gratuito';
+      case PlanAction.subscribe:
+        return 'Suscribirse Ahora';
+      case PlanAction.switchPlan:
+        if (selected != null && isYearlyPackage(selected)) {
+          return 'Cambiar a plan Anual';
+        }
+        if (selected != null && isMonthlyPackage(selected)) {
+          return 'Cambiar a plan Mensual';
+        }
+        return 'Cambiar de plan';
+      case PlanAction.manage:
+        return 'Administrar suscripción';
+    }
+  }
+
+  Future<void> _handleManage(SubscriptionProvider provider) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final opened = await provider.openManageSubscription();
+    if (!opened) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No se pudo abrir la administración de la suscripción. '
+            'Hazlo desde los ajustes de tu cuenta de Apple o Google.',
+          ),
+          backgroundColor: MyCarColors.warning,
+        ),
+      );
+    }
+  }
+
   String _getPackageDisplayName(Package package) {
     final identifier = package.identifier.toLowerCase();
     if (identifier.contains('monthly') ||
@@ -122,6 +159,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       body: SafeArea(
         child: Consumer<SubscriptionProvider>(
           builder: (context, subscriptionProvider, child) {
+            final packages = subscriptionProvider.availablePackages;
+            final tier = subscriptionProvider.currentTier;
+            final currentId = currentPlanId(tier, packages);
+            final selectedId = selectedPlanId(
+              tier: tier,
+              packages: packages,
+              chosen: _chosenPlanId,
+            );
+            final action = actionFor(
+              tier: tier,
+              packages: packages,
+              selectedId: selectedId,
+            );
+            Package? selectedPackage;
+            for (final package in packages) {
+              if (package.identifier == selectedId) selectedPackage = package;
+            }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -182,11 +236,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       'Alertas básicas',
                       'Soporte por email',
                     ],
-                    isSelected: _selectedPackage == null,
+                    isSelected: selectedId == freePlanId,
+                    isCurrent: currentId == freePlanId,
                     isPremium: false,
                     onTap: () {
                       setState(() {
-                        _selectedPackage = null;
+                        _chosenPlanId = freePlanId;
                       });
                     },
                   ),
@@ -354,17 +409,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       ),
                     )
                   else
-                    ...subscriptionProvider.availablePackages.map((package) {
-                      final isMonthly =
-                          package.identifier.toLowerCase().contains(
-                            'monthly',
-                          ) ||
-                          package.identifier.toLowerCase().contains(
-                            'mensual',
-                          ) ||
-                          package.identifier.toLowerCase().contains(
-                            'rc_monthly',
-                          );
+                    ...packages.map((package) {
+                      final isMonthly = isMonthlyPackage(package);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: _buildPlanCard(
@@ -381,71 +427,74 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 ? 'Renovación mensual'
                                 : 'Ahorra 17% con plan anual',
                           ],
-                          isSelected:
-                              _selectedPackage?.identifier ==
-                              package.identifier,
+                          isSelected: selectedId == package.identifier,
+                          isCurrent: currentId == package.identifier,
                           isPremium: true,
                           onTap: () {
                             setState(() {
-                              _selectedPackage = package;
+                              _chosenPlanId = package.identifier;
                             });
                           },
                         ),
                       );
                     }),
                   const SizedBox(height: 32),
-                  // Botón de acción
-                  if (_selectedPackage == null)
-                    FilledButton(
-                      onPressed: _handleContinue,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: MyCarColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  // Botón de acción: depende del plan actual y del elegido
+                  if (action == PlanAction.manage && selectedId == freePlanId)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        'Para volver al plan gratuito, cancela tu suscripción '
+                        'desde la tienda. Conservas el acceso hasta que termine '
+                        'el periodo pagado.',
+                        key: const Key('subscription_downgrade_hint'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: MyCarColors.textSecondary,
                         ),
                       ),
-                      child: const Text(
-                        'Continuar con Plan Gratuito',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                  FilledButton(
+                    key: const Key('subscription_primary_button'),
+                    onPressed: subscriptionProvider.isLoading
+                        ? null
+                        : () => switch (action) {
+                            PlanAction.continueFree => _handleContinue(),
+                            PlanAction.manage => _handleManage(
+                              subscriptionProvider,
+                            ),
+                            PlanAction.subscribe || PlanAction.switchPlan =>
+                              selectedPackage == null
+                                  ? null
+                                  : _handlePurchase(selectedPackage),
+                          },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: MyCarColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    )
-                  else
-                    FilledButton(
-                      onPressed: subscriptionProvider.isLoading
-                          ? null
-                          : () => _handlePurchase(_selectedPackage!),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: MyCarColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: subscriptionProvider.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Suscribirse Ahora',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                    ),
+                    child: subscriptionProvider.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
                               ),
                             ),
-                    ),
+                          )
+                        : Text(
+                            _actionLabel(action, selectedPackage),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
                   const SizedBox(height: 16),
                   // Botón restaurar compras
                   TextButton(
@@ -493,6 +542,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     required bool isSelected,
     required bool isPremium,
     required VoidCallback onTap,
+    bool isCurrent = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -541,6 +591,28 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       'PREMIUM',
                       style: TextStyle(
                         color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                if (isCurrent)
+                  Container(
+                    key: const Key('subscription_current_badge'),
+                    margin: EdgeInsets.only(left: isPremium ? 8 : 0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: MyCarColors.success.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'PLAN ACTUAL',
+                      style: TextStyle(
+                        color: MyCarColors.success,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
