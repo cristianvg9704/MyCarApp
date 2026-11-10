@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../models/car_transaction.dart';
 import '../screens/add_transaction_screen.dart';
 import '../providers/car_provider.dart';
-import '../widgets/voice_transaction_sheet.dart';
+import '../providers/transaction_provider.dart';
+import '../services/speech_recognizer.dart';
+import '../widgets/voice_entry_sheet.dart';
+import 'my_car_colors.dart';
 
 class TransactionModalHelper {
   /// Muestra un modal desde abajo para registrar un ingreso o un egreso
@@ -84,27 +87,80 @@ class TransactionModalHelper {
     ).then((success) => _afterSave(success, scaffoldMessenger, carProvider));
   }
 
-  /// Hoja compacta para registrar un movimiento solo con la voz: muestra lo
-  /// que se va entendiendo y el movimiento interpretado, sin el formulario.
+  /// Hoja para registrar un movimiento solo con la voz (Listo → Escuchando →
+  /// Revisar y guardar), sin el formulario. Devuelve `true` si se guardó algo.
+  ///
+  /// Al guardar muestra "Gasto guardado" / "Ingreso guardado" con **Deshacer**
+  /// y llama a [onChanged] (también si se deshace) para que la pantalla que
+  /// abrió la hoja refresque sus datos. Si el usuario prefiere registrar a
+  /// mano, abre el formulario completo.
   static Future<bool?> showVoiceTransactionSheet(
     BuildContext context, {
     required String carId,
-  }) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    VoidCallback? onChanged,
+    @visibleForTesting SpeechRecognizer? speechRecognizer,
+    @visibleForTesting String? Function()? currentUserId,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
     final carProvider = Provider.of<CarProvider>(context, listen: false);
+    final transactions = Provider.of<TransactionProvider>(
+      context,
+      listen: false,
+    );
 
-    return showModalBottomSheet<bool>(
+    final outcome = await showModalBottomSheet<VoiceEntryOutcome>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (modalContext) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(modalContext).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: VoiceTransactionSheet(carId: carId),
+      barrierColor: MyCarColors.scrim,
+      builder: (_) => VoiceEntrySheet(
+        carId: carId,
+        speechRecognizer: speechRecognizer,
+        currentUserId: currentUserId,
       ),
-    ).then((success) => _afterSave(success, scaffoldMessenger, carProvider));
+    );
+
+    switch (outcome) {
+      case VoiceEntrySaved(:final transactionId, :final type):
+        void refresh() {
+          carProvider.loadCars();
+          onChanged?.call();
+        }
+
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              type == TransactionType.expense
+                  ? 'Gasto guardado'
+                  : 'Ingreso guardado',
+            ),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Deshacer',
+              onPressed: () async {
+                try {
+                  await transactions.delete(transactionId);
+                } catch (_) {
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('No se pudo deshacer')),
+                  );
+                  return;
+                }
+                refresh();
+              },
+            ),
+          ),
+        );
+        WidgetsBinding.instance.addPostFrameCallback((_) => refresh());
+        return true;
+      case VoiceEntryManual():
+        if (!context.mounted) return null;
+        final saved = await showAddTransactionModal(context, carId: carId);
+        if (saved == true) onChanged?.call();
+        return saved;
+      case null:
+        return null;
+    }
   }
 
   /// Avisa y recarga los vehículos si se guardó un movimiento.

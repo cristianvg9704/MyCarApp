@@ -33,6 +33,16 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> add(CarTransaction transaction) =>
       _mutate('adding', () => _repository.add(transaction));
 
+  /// Igual que [add], pero devuelve el id del movimiento creado (para poder
+  /// deshacerlo con [delete]).
+  Future<String> addReturningId(CarTransaction transaction) async {
+    late final String id;
+    await _mutate('adding', () async {
+      id = await _repository.add(transaction);
+    });
+    return id;
+  }
+
   Future<void> update(CarTransaction transaction) =>
       _mutate('updating', () => _repository.update(transaction));
 

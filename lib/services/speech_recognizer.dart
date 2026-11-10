@@ -10,7 +10,10 @@ enum SpeechFailure {
   /// El dispositivo no tiene un servicio de reconocimiento de voz.
   unavailable,
 
-  /// Ocurrió un error durante la escucha (red, audio, etc.).
+  /// El reconocimiento necesita conexión y no hay (o la red falló).
+  network,
+
+  /// Ocurrió un error durante la escucha (audio, etc.).
   failed,
 }
 
@@ -21,6 +24,8 @@ String speechFailureMessage(SpeechFailure failure) {
       return 'Activa el micrófono y el reconocimiento de voz para MyCar en Ajustes.';
     case SpeechFailure.unavailable:
       return 'Este dispositivo no tiene reconocimiento de voz disponible.';
+    case SpeechFailure.network:
+      return 'Sin conexión: el reconocimiento de voz necesita internet.';
     case SpeechFailure.failed:
       return 'No se pudo reconocer la voz. Intenta de nuevo.';
   }
@@ -37,11 +42,13 @@ abstract class SpeechRecognizer {
 
   /// Empieza a escuchar. [onResult] se llama con resultados parciales y con el
   /// final (`isFinal == true`). [onDone] se llama cuando la escucha termina;
-  /// [onError] si falla a mitad de camino.
+  /// [onError] si falla a mitad de camino. [onSoundLevel] recibe el volumen del
+  /// micrófono normalizado de 0 a 1 (para animar la onda de audio).
   Future<void> start({
     required void Function(String text, bool isFinal) onResult,
     VoidCallback? onDone,
     void Function(SpeechFailure failure)? onError,
+    void Function(double level)? onSoundLevel,
   });
 
   /// Termina la escucha y entrega el resultado final.
@@ -105,21 +112,41 @@ class DeviceSpeechRecognizer implements SpeechRecognizer {
     required void Function(String text, bool isFinal) onResult,
     VoidCallback? onDone,
     void Function(SpeechFailure failure)? onError,
+    void Function(double level)? onSoundLevel,
   }) async {
     _onError = onError;
     _onDone = onDone;
+    _minLevel = double.infinity;
+    _maxLevel = double.negativeInfinity;
     await _speech.listen(
       onResult: (result) =>
           onResult(result.recognizedWords, result.finalResult),
+      onSoundLevelChange: onSoundLevel == null
+          ? null
+          : (level) => onSoundLevel(_normalizeLevel(level)),
       listenOptions: SpeechListenOptions(
         localeId: _localeId,
         listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 3),
+        // ~2 s de silencio terminan la escucha.
+        pauseFor: const Duration(seconds: 2),
         partialResults: true,
         cancelOnError: true,
         listenMode: ListenMode.dictation,
       ),
     );
+  }
+
+  /// El rango del nivel de sonido depende de la plataforma (iOS y Android lo
+  /// reportan distinto), así que se normaliza con el mínimo y máximo vistos en
+  /// esta escucha, con un rango mínimo para no amplificar el ruido de fondo.
+  double _minLevel = double.infinity;
+  double _maxLevel = double.negativeInfinity;
+
+  double _normalizeLevel(double level) {
+    if (level < _minLevel) _minLevel = level;
+    if (level > _maxLevel) _maxLevel = level;
+    final range = (_maxLevel - _minLevel).clamp(6.0, double.infinity);
+    return ((level - _minLevel) / range).clamp(0.0, 1.0);
   }
 
   @override
@@ -141,10 +168,14 @@ class DeviceSpeechRecognizer implements SpeechRecognizer {
         error.errorMsg == 'error_speech_timeout') {
       return;
     }
-    _onError?.call(
-      error.errorMsg.contains('permission')
-          ? SpeechFailure.permissionDenied
-          : SpeechFailure.failed,
-    );
+    _onError?.call(failureForErrorMessage(error.errorMsg));
+  }
+
+  /// Traduce el código de error del motor nativo a un [SpeechFailure].
+  @visibleForTesting
+  static SpeechFailure failureForErrorMessage(String errorMsg) {
+    if (errorMsg.contains('permission')) return SpeechFailure.permissionDenied;
+    if (errorMsg.contains('network')) return SpeechFailure.network;
+    return SpeechFailure.failed;
   }
 }

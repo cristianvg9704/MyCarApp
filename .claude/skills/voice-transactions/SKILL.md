@@ -10,35 +10,47 @@ No se guarda nada automáticamente: el usuario revisa lo entendido y pulsa **Gua
 **Sin IA ni red propia**: voz a texto con el motor nativo del dispositivo y un parser por reglas. Integrar un LLM queda
 pendiente (ver al final).
 
-## Flujo
-1. **Micrófono del vehículo** (con el vehículo ya elegido):
-   - Detalle del vehículo → icono de micrófono en el AppBar (`CarDetailScreen`).
-   - Finanzas → icono de micrófono en la tarjeta de cada vehículo (`FinancesListScreen`).
-   Ambos abren `TransactionModalHelper.showVoiceTransactionSheet(context, carId:)`: una **hoja compacta**
-   (`VoiceTransactionSheet`) que **no muestra el formulario de ingresos/egresos**. Solo muestra el micrófono, el texto que
-   se va entendiendo y, al terminar, el resumen de lo interpretado (tipo, monto, descripción, categoría, fecha, litros, km)
-   con **Guardar** y **Hablar de nuevo**. Empieza a escuchar al abrirse. Sin monto no se puede guardar.
-2. **Formulario completo** (`AddTransactionScreen`, botón + de Finanzas/detalle): conserva su botón **Registrar por voz**;
-   ahí la voz rellena el formulario, el vehículo se elige en el selector y el usuario pulsa Guardar.
-3. `SpeechRecognizer` entrega resultados parciales (transcripción en vivo) y uno final.
-4. `VoiceTransactionParser.parse` convierte el texto en un `VoiceTransactionDraft`. Sin verbo ni categoría el tipo por
-   defecto en la hoja es **egreso** (en el formulario, el tipo que esté elegido).
+## Flujo: hoja `VoiceEntrySheet` (3 pasos)
+Entradas con el vehículo ya elegido: micrófono en el AppBar del detalle (`CarDetailScreen`) y en la tarjeta de cada
+vehículo de Finanzas (`FinancesListScreen`). Ambas llaman a
+`TransactionModalHelper.showVoiceTransactionSheet(context, carId:, onChanged:)`, que abre la hoja (fondo blanco, radio
+superior 28, velo `MyCarColors.scrim`). **No muestra el formulario de ingresos/egresos.**
+
+1. **Listo** (`idle`): título, chip del vehículo (toca → selector), micrófono de 104 px en un halo de 156 px,
+   "Toca el micrófono y habla" y la sección "Prueba decir" con 3 ejemplos. No escucha hasta que se toca el micrófono.
+2. **Escuchando** (`listening` / `processing`): punto + "Escuchando…" + cronómetro `m:ss` + X (cancela y vuelve a Listo sin
+   guardar), caja "Lo que entendí" con la transcripción parcial en vivo, onda de 32 barras (volumen del micrófono), y el
+   micrófono con cuadrado de detener y dos halos que laten. Termina al tocar el botón o tras ~2 s de silencio
+   (`pauseFor`). Vibración ligera al empezar y al terminar. Sin voz → "No te escuché bien" + "Intentar de nuevo".
+3. **Revisa y guarda** (`ready`): frase original, control **Ingreso | Gasto**, monto de 44 px (`−$60.000` rojo / `+$150.000`
+   verde; toca para editarlo), filas editables **Categoría** (solo gasto), **Vehículo** y **Fecha** (cada una abre su
+   selector), litros/km si se dijeron, y los botones **Grabar de nuevo** y **Guardar gasto/ingreso** (solo se habilita con
+   monto > 0 y un vehículo). Al guardar cierra la hoja, muestra "Gasto guardado" con **Deshacer** (borra el movimiento por
+   su id) y refresca la pantalla de origen (`onChanged`, también al deshacer).
+- **Errores** (`error` / `noSpeech`), dentro de la hoja: sin permiso explica para qué se usa el micrófono y ofrece
+  **Abrir Ajustes** (`permission_handler.openAppSettings`); sin conexión (`SpeechFailure.network`) ofrece reintentar;
+  sin reconocimiento disponible solo queda **Registrar a mano**. **Registrar a mano** cierra la hoja con
+  `VoiceEntryManual` y el helper abre el formulario completo (`showAddTransactionModal`).
+
+El formulario completo (`AddTransactionScreen`, botón + de Finanzas) conserva su botón **Registrar por voz**: ahí la voz solo
+rellena el formulario y el usuario pulsa Guardar.
 
 ## El micrófono nunca queda activo
 - Tocar el micrófono mientras escucha sale de "escuchando" **de inmediato** (`processing`) y luego interpreta.
-- Guardar apaga el micrófono antes de escribir (`VoiceCaptureController.release()` en la hoja; en el formulario se
-  cancela el reconocedor si seguía escuchando). `release()` conserva lo interpretado por si el guardado falla.
+- Guardar apaga el micrófono antes de escribir (`VoiceCaptureController.release()` en la hoja; en el formulario se cancela el
+  reconocedor si seguía escuchando). `release()` conserva lo interpretado por si el guardado falla y hay que reintentar.
 - Cerrar la hoja o la pantalla (`dispose`) cancela el reconocedor; los eventos tardíos de una escucha cancelada se ignoran.
 
 ## Capas
 | Capa | Archivo |
 |---|---|
-| Reconocimiento | `lib/services/speech_recognizer.dart`: `SpeechRecognizer` (abstracta), `DeviceSpeechRecognizer` (paquete `speech_to_text`), `SpeechFailure` |
-| Parser de frases | `lib/services/voice_transaction_parser.dart` (`VoiceTransactionParser`, `VoiceTransactionDraft`) |
-| Números en español | `lib/utils/spanish_number_parser.dart` (`tokenizeSpanish`, `extractSpokenNumbers`, `normalizeSpanish`) |
-| Estado de la captura | `lib/providers/voice_capture_controller.dart`: `VoiceCaptureController` (idle → listening → processing → ready / noSpeech / error), `canSave`, `release()`, `cancel()`. Lógica pura con reconocedor y reloj inyectables |
-| Hoja de voz | `lib/widgets/voice_transaction_sheet.dart`: `VoiceTransactionSheet`; se abre con `TransactionModalHelper.showVoiceTransactionSheet` |
-| Borrador → movimiento | `VoiceTransactionDraft.toTransaction(userId:, carId:)` (litros solo en combustible, km solo en combustible/mantenimiento) |
+| Reconocimiento | `lib/services/speech_recognizer.dart`: `SpeechRecognizer` (abstracta; `onSoundLevel` normalizado 0..1), `DeviceSpeechRecognizer` (paquete `speech_to_text`, ~2 s de pausa), `SpeechFailure` (`permissionDenied`, `unavailable`, `network`, `failed`), `speechFailureMessage` |
+| Parser de frases | `lib/services/voice_transaction_parser.dart` (`VoiceTransactionParser`, `VoiceTransactionDraft` con `withType/withAmount/withCategory/withDate`, `VoiceVehicle`) |
+| Números en español | `lib/utils/spanish_number_parser.dart` |
+| Estado de la captura | `lib/providers/voice_capture_controller.dart`: `VoiceCaptureController` (idle → listening → processing → ready / noSpeech / error), `soundLevel`, `elapsed`, `selectedCarId`, ediciones, `canSave`, `toTransaction`, `release()`, `cancel()`. Lógica pura, reconocedor y reloj inyectables |
+| Hoja de voz | `lib/widgets/voice_entry_sheet.dart`: `VoiceEntrySheet`, resultado `VoiceEntrySaved` / `VoiceEntryManual` (recognizer, userId, ajustes, vibración y reloj inyectables) |
+| Entrada + deshacer | `TransactionModalHelper.showVoiceTransactionSheet` (`lib/utils/transaction_modal_helper.dart`); `TransactionProvider.addReturningId` |
+| Colores | `MyCarColors.income/incomeLight/expense/expenseLight/scrim/surfaceMuted/borderLight/textLabel` |
 | Formulario | `AddTransactionScreen` (`speechRecognizer` y `startWithVoice` inyectables) |
 
 ## Reglas del parser (español de Colombia)
@@ -72,21 +84,20 @@ pendiente (ver al final).
   timeout de silencio se ignoran.
 
 ## Tests
-- `test/utils/spanish_number_parser_test.dart` y `test/services/voice_transaction_parser_test.dart`: frases y casos límite.
-- `test/helpers/fake_speech_recognizer.dart`: reconocedor falso compartido (`say`, `fail`, `finishWithoutFinalResult`).
-- `test/providers/voice_capture_controller_test.dart`: estados, parciales, final tardío, `stop`, `release`, `cancel`, eventos
-  tardíos, permisos y `dispose`.
-- `test/widgets/voice_transaction_sheet_test.dart`: la hoja no muestra el formulario, transcripción en vivo, resumen, guardar
-  (apaga el micrófono y cierra), sin monto, reintentar, permisos, cerrar y fallo al guardar.
-- `test/widgets/add_transaction_screen_test.dart` (grupo `voice input`): escucha, transcripción parcial, llenado del
-  formulario, guardado tras confirmar, permisos, errores, `startWithVoice`, cancelación al salir y guardar mientras escucha.
-- `test/services/voice_transaction_parser_test.dart`: incluye `toTransaction`.
-- `test/widgets/car_detail_screen_test.dart`: el AppBar ofrece la acción de voz.
-- No se prueba `DeviceSpeechRecognizer` ni que los iconos de micrófono abran la hoja (crearía el motor nativo): verificar a
-  mano en un dispositivo real.
+- `test/helpers/fake_speech_recognizer.dart`: reconocedor falso compartido (`say`, `level`, `fail`, `finishWithoutFinalResult`).
+- `test/services/voice_transaction_parser_test.dart`: frases del rediseño (chips de ejemplo, montos, tipo, categoría, fecha,
+  vehículo), ediciones del borrador y `toTransaction`. `test/utils/spanish_number_parser_test.dart`.
+- `test/services/speech_failure_test.dart`: traducción de errores del motor y mensajes.
+- `test/providers/voice_capture_controller_test.dart`: estados, parciales, final tardío, stop/release/cancel, vehículo, edición,
+  volumen y cronómetro.
+- `test/widgets/voice_entry_sheet_test.dart`: los 3 pasos, medidas (104/156 px, botones 52, áreas >= 44), onda de 32 barras,
+  cronómetro, vibración, selectores, guardar, errores y permisos.
+- `test/utils/voice_sheet_helper_test.dart`: "Gasto guardado" con Deshacer, refresco, y "Registrar a mano" abre el formulario.
+- `test/widgets/add_transaction_screen_test.dart` (grupo `voice input`): el formulario, incluido guardar mientras escucha.
+- No se prueba `DeviceSpeechRecognizer` (motor nativo, nivel de sonido, silencio de 2 s) ni que los iconos de micrófono abran la
+  hoja (crearía el motor nativo): **verificar a mano** en el simulador y en un iPhone real.
 
 ## Pendiente
 - Interpretar el texto con un LLM (por ejemplo Claude vía una Edge Function de Supabase, nunca con la API key en la app)
   usando `VoiceTransactionParser` como respaldo sin conexión. La salida debe seguir siendo un `VoiceTransactionDraft`.
-- Asociar el vehículo por voz ("en el Corolla") cuando se registra desde Finanzas sin vehículo elegido.
 - Soportar otras monedas e inglés.

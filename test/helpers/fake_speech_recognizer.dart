@@ -13,6 +13,7 @@ class FakeSpeechRecognizer implements SpeechRecognizer {
   void Function(String text, bool isFinal)? _onResult;
   VoidCallback? _onDone;
   void Function(SpeechFailure failure)? _onError;
+  void Function(double level)? _onSoundLevel;
 
   @override
   bool get isListening => _listening;
@@ -28,7 +29,9 @@ class FakeSpeechRecognizer implements SpeechRecognizer {
     required void Function(String text, bool isFinal) onResult,
     VoidCallback? onDone,
     void Function(SpeechFailure failure)? onError,
+    void Function(double level)? onSoundLevel,
   }) async {
+    _onSoundLevel = onSoundLevel;
     _listening = true;
     _onResult = onResult;
     _onDone = onDone;
@@ -44,6 +47,9 @@ class FakeSpeechRecognizer implements SpeechRecognizer {
       _onDone?.call();
     }
   }
+
+  /// Simula el volumen del micrófono (0 a 1).
+  void level(double value) => _onSoundLevel?.call(value);
 
   /// El motor avisa "terminado" sin haber entregado un resultado final.
   void finishWithoutFinalResult() {

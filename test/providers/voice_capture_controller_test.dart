@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:new_my_car_app/models/car_transaction.dart';
 import 'package:new_my_car_app/providers/voice_capture_controller.dart';
 import 'package:new_my_car_app/services/speech_recognizer.dart';
+import 'package:new_my_car_app/services/voice_transaction_parser.dart';
 
 import '../helpers/fake_speech_recognizer.dart';
 
@@ -12,7 +13,15 @@ void main() {
 
   setUp(() {
     recognizer = FakeSpeechRecognizer();
-    controller = VoiceCaptureController(recognizer: recognizer, now: () => now);
+    controller = VoiceCaptureController(
+      recognizer: recognizer,
+      now: () => now,
+      initialCarId: 'c1',
+      vehicles: const [
+        VoiceVehicle(id: 'c1', brand: 'Mazda', model: '3'),
+        VoiceVehicle(id: 'c2', brand: 'Renault', model: 'Duster'),
+      ],
+    );
   });
 
   tearDown(() => controller.dispose());
@@ -207,5 +216,202 @@ void main() {
 
     expect(ownRecognizer.cancelCalls, 1);
     expect(ownRecognizer.isListening, isFalse);
+  });
+
+  group('vehículo', () {
+    test('usa el vehículo actual si la frase no nombra ninguno', () async {
+      await controller.start();
+
+      recognizer.say('gasolina 60 mil', isFinal: true);
+
+      expect(controller.selectedCarId, 'c1');
+    });
+
+    test('cambia al vehículo que nombra la frase', () async {
+      await controller.start();
+
+      recognizer.say('aceite 120 mil la Duster', isFinal: true);
+
+      expect(controller.selectedCarId, 'c2');
+    });
+
+    test('el usuario puede elegir otro vehículo', () async {
+      await controller.start();
+      recognizer.say('gasolina 60 mil', isFinal: true);
+
+      controller.setCarId('c2');
+
+      expect(controller.selectedCarId, 'c2');
+      expect(controller.toTransaction(userId: 'u1').carId, 'c2');
+    });
+
+    test('sin vehículo elegido no se puede guardar', () async {
+      final noCar = VoiceCaptureController(
+        recognizer: recognizer,
+        now: () => now,
+      );
+      await noCar.start();
+      recognizer.say('gasolina 60 mil', isFinal: true);
+
+      expect(noCar.canSave, isFalse);
+      noCar.dispose();
+    });
+  });
+
+  group('edición de lo entendido', () {
+    Future<void> hear(String phrase) async {
+      await controller.start();
+      recognizer.say(phrase, isFinal: true);
+    }
+
+    test('cambiar el tipo actualiza el borrador', () async {
+      await hear('gasolina 60 mil');
+      expect(controller.draft!.type, TransactionType.expense);
+
+      controller.setType(TransactionType.income);
+
+      expect(controller.draft!.type, TransactionType.income);
+      expect(controller.draft!.category, isNull);
+      expect(controller.canSave, isTrue);
+    });
+
+    test('cambiar la categoría', () async {
+      await hear('gasolina 60 mil');
+
+      controller.setCategory(TransactionCategory.maintenance);
+
+      expect(controller.draft!.category, TransactionCategory.maintenance);
+    });
+
+    test('cambiar la fecha', () async {
+      await hear('gasolina 60 mil');
+
+      controller.setDate(DateTime(2026, 11, 1));
+
+      expect(controller.draft!.date, DateTime(2026, 11, 1));
+    });
+
+    test('corregir el monto habilita guardar', () async {
+      await hear('gasté en gasolina');
+      expect(controller.canSave, isFalse);
+
+      controller.setAmount(55000);
+
+      expect(controller.canSave, isTrue);
+      expect(controller.toTransaction(userId: 'u1').amount, 55000);
+    });
+
+    test('un monto en cero o vacío no se puede guardar', () async {
+      await hear('gasolina 60 mil');
+
+      controller.setAmount(0);
+      expect(controller.canSave, isFalse);
+      controller.setAmount(null);
+      expect(controller.canSave, isFalse);
+    });
+
+    test('las ediciones notifican a la interfaz', () async {
+      await hear('gasolina 60 mil');
+      var notifications = 0;
+      controller.addListener(() => notifications++);
+
+      controller.setType(TransactionType.income);
+      controller.setAmount(1000);
+      controller.setDate(DateTime(2026, 11, 2));
+      controller.setCategory(TransactionCategory.other);
+      controller.setCarId('c2');
+
+      expect(notifications, 5);
+    });
+
+    test('editar sin resultado no hace nada', () {
+      controller.setType(TransactionType.income);
+      controller.setAmount(10);
+
+      expect(controller.draft, isNull);
+    });
+
+    test('toTransaction guarda lo editado', () async {
+      await hear('gasolina 60 mil');
+      controller
+        ..setType(TransactionType.income)
+        ..setAmount(150000)
+        ..setCarId('c2');
+
+      final t = controller.toTransaction(userId: 'u1');
+
+      expect(t.type, TransactionType.income);
+      expect(t.amount, 150000);
+      expect(t.carId, 'c2');
+      expect(t.category, isNull);
+      expect(t.userId, 'u1');
+    });
+  });
+
+  group('nivel de sonido y cronómetro', () {
+    test('el volumen del micrófono se refleja mientras se escucha', () async {
+      await controller.start();
+
+      recognizer.level(0.7);
+
+      expect(controller.soundLevel.value, 0.7);
+    });
+
+    test('el volumen se limita a 0..1 y vuelve a 0 al terminar', () async {
+      await controller.start();
+      recognizer.level(3);
+      expect(controller.soundLevel.value, 1);
+
+      recognizer.say('gasolina 60 mil', isFinal: true);
+
+      expect(controller.soundLevel.value, 0);
+    });
+
+    test('el volumen tardío se ignora tras terminar', () async {
+      await controller.start();
+      recognizer.say('gasolina 60 mil', isFinal: true);
+
+      recognizer.level(0.9);
+
+      expect(controller.soundLevel.value, 0);
+    });
+
+    test(
+      'el cronómetro corre mientras escucha y se congela al terminar',
+      () async {
+        var clock = DateTime(2026, 11, 10, 12);
+        final timed = VoiceCaptureController(
+          recognizer: recognizer,
+          now: () => clock,
+          initialCarId: 'c1',
+        );
+        await timed.start();
+
+        clock = clock.add(const Duration(seconds: 7));
+        expect(timed.elapsed, const Duration(seconds: 7));
+
+        recognizer.say('gasolina 60 mil', isFinal: true);
+        clock = clock.add(const Duration(seconds: 30));
+
+        expect(timed.elapsed, const Duration(seconds: 7));
+        timed.dispose();
+      },
+    );
+
+    test('empezar de nuevo reinicia el cronómetro', () async {
+      var clock = DateTime(2026, 11, 10, 12);
+      final timed = VoiceCaptureController(
+        recognizer: recognizer,
+        now: () => clock,
+      );
+      await timed.start();
+      clock = clock.add(const Duration(seconds: 9));
+      recognizer.say('gasolina 60 mil', isFinal: true);
+
+      await timed.start();
+
+      expect(timed.elapsed, Duration.zero);
+      timed.dispose();
+    });
   });
 }

@@ -146,11 +146,14 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   Future<void> _addByVoice() async {
     final carId = _car?.id;
     if (carId == null) return;
-    final saved = await TransactionModalHelper.showVoiceTransactionSheet(
+    await TransactionModalHelper.showVoiceTransactionSheet(
       context,
       carId: carId,
+      // Al guardar (y al deshacer) se recargan los movimientos de la pantalla.
+      onChanged: () {
+        if (mounted) _loadTransactions();
+      },
     );
-    if (saved == true && mounted) _loadTransactions();
   }
 
   Widget _buildVoiceAction() => IconButton(

@@ -24,8 +24,11 @@ class MyCarColors {
   // GRAY - Textos y Fondos
   // ============================================
   static const Color gray50 = Color(0xFFF9FAFB);
+  static const Color gray100 = Color(0xFFF3F4F6);
+  static const Color gray200 = Color(0xFFE5E7EB);
   static const Color gray300 = Color(0xFFD1D5DB);
   static const Color gray400 = Color(0xFF9CA3AF);
+  static const Color gray500 = Color(0xFF6B7280);
   static const Color gray600 = Color(0xFF4B5563);
   static const Color gray700 = Color(0xFF374151);
   static const Color gray800 = Color(0xFF1F2937);
@@ -78,6 +81,34 @@ class MyCarColors {
   
   /// Color para bordes y líneas divisorias
   static const Color border = gray300;
+
+  /// Borde suave de tarjetas y separadores de listas
+  static const Color borderLight = gray200;
+
+  /// Fondo de superficies neutras (botones circulares, controles segmentados)
+  static const Color surfaceMuted = gray100;
+
+  /// Texto de etiquetas pequeñas (labels de sección y de filas)
+  static const Color textLabel = gray500;
+
+  /// Velo que oscurece el fondo detrás de las hojas modales (gray-900 al 50%)
+  static const Color scrim = Color(0x80111827);
+
+  // ============================================
+  // INGRESOS Y GASTOS
+  // ============================================
+
+  /// Ingreso: texto/ícono
+  static const Color income = Color(0xFF047857);
+
+  /// Ingreso: fondo suave
+  static const Color incomeLight = Color(0xFFD1FAE5);
+
+  /// Gasto: texto/ícono
+  static const Color expense = Color(0xFFDC2626);
+
+  /// Gasto: fondo suave
+  static const Color expenseLight = Color(0xFFFEE2E2);
 
   // ============================================
   // GRADIENTES PREDEFINIDOS
