@@ -117,19 +117,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     super.dispose();
   }
 
-  String _failureMessage(SpeechFailure failure) {
-    switch (failure) {
-      case SpeechFailure.permissionDenied:
-        return 'Activa el micrófono y el reconocimiento de voz para MyCar en Ajustes.';
-      case SpeechFailure.unavailable:
-        return 'Este dispositivo no tiene reconocimiento de voz disponible.';
-      case SpeechFailure.failed:
-        return 'No se pudo reconocer la voz. Intenta de nuevo.';
-    }
-  }
-
   Future<void> _toggleVoice() async {
     if (_isListening) {
+      // La interfaz sale de "escuchando" de inmediato; el texto final llega
+      // después y se aplica igual.
+      setState(() => _isListening = false);
       await _speech.stop();
       return;
     }
@@ -137,7 +129,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final failure = await _speech.initialize();
     if (!mounted) return;
     if (failure != null) {
-      _showMessage(_failureMessage(failure));
+      _showMessage(speechFailureMessage(failure));
       return;
     }
 
@@ -157,7 +149,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       onError: (failure) {
         if (!mounted) return;
         setState(() => _isListening = false);
-        _showMessage(_failureMessage(failure));
+        _showMessage(speechFailureMessage(failure));
       },
     );
   }
@@ -220,6 +212,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   Future<void> _save() async {
     if (_isSaving || !_formKey.currentState!.validate()) return;
+
+    // Apagar el micrófono: si seguía escuchando, el resultado final llegaría
+    // después de guardar y volvería a llenar el formulario.
+    if (_isListening || _speech.isListening) {
+      setState(() => _isListening = false);
+      await _speech.cancel();
+      if (!mounted) return;
+    }
 
     final carId = _selectedCarId;
     if (carId == null) {

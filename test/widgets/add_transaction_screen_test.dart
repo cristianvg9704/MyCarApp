@@ -10,6 +10,8 @@ import 'package:new_my_car_app/screens/add_transaction_screen.dart';
 import 'package:new_my_car_app/services/speech_recognizer.dart';
 import 'package:new_my_car_app/services/transaction_repository.dart';
 
+import '../helpers/fake_speech_recognizer.dart';
+
 class _FakeCarProvider extends CarProvider {
   @override
   List<Car> get cars => [
@@ -42,70 +44,13 @@ class _FakeRepository implements TransactionRepository {
   Future<void> delete(String id) async {}
 }
 
-class _FakeSpeechRecognizer implements SpeechRecognizer {
-  SpeechFailure? initFailure;
-  int initializeCalls = 0;
-  int stopCalls = 0;
-  int cancelCalls = 0;
-  bool _listening = false;
-  String _lastText = '';
-  void Function(String text, bool isFinal)? _onResult;
-  VoidCallback? _onDone;
-  void Function(SpeechFailure failure)? _onError;
-
-  @override
-  bool get isListening => _listening;
-
-  @override
-  Future<SpeechFailure?> initialize() async {
-    initializeCalls++;
-    return initFailure;
-  }
-
-  @override
-  Future<void> start({
-    required void Function(String text, bool isFinal) onResult,
-    VoidCallback? onDone,
-    void Function(SpeechFailure failure)? onError,
-  }) async {
-    _listening = true;
-    _onResult = onResult;
-    _onDone = onDone;
-    _onError = onError;
-  }
-
-  /// Simula lo que dice el usuario.
-  void say(String text, {bool isFinal = false}) {
-    _lastText = text;
-    _onResult?.call(text, isFinal);
-    if (isFinal) {
-      _listening = false;
-      _onDone?.call();
-    }
-  }
-
-  void fail(SpeechFailure failure) => _onError?.call(failure);
-
-  @override
-  Future<void> stop() async {
-    stopCalls++;
-    say(_lastText, isFinal: true);
-  }
-
-  @override
-  Future<void> cancel() async {
-    cancelCalls++;
-    _listening = false;
-  }
-}
-
 void main() {
   late _FakeRepository repository;
-  late _FakeSpeechRecognizer recognizer;
+  late FakeSpeechRecognizer recognizer;
 
   setUp(() {
     repository = _FakeRepository();
-    recognizer = _FakeSpeechRecognizer();
+    recognizer = FakeSpeechRecognizer();
   });
 
   Future<void> pumpScreen(
@@ -529,6 +474,26 @@ void main() {
 
       expect(recognizer.initializeCalls, 1);
       expect(recognizer.isListening, isTrue);
+    });
+
+    testWidgets('saving while still listening turns the microphone off', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+      await tapVoice(tester);
+      expect(recognizer.isListening, isTrue);
+
+      await tester.enterText(field('Descripción *'), 'Viaje');
+      await tester.enterText(field('Monto *'), '50000');
+      await tester.tap(find.text('Guardar Ingreso'));
+      await tester.pumpAndSettle();
+
+      expect(repository.added, hasLength(1));
+      expect(recognizer.cancelCalls, greaterThanOrEqualTo(1));
+      expect(recognizer.isListening, isFalse);
+      // La interfaz ya no aparenta estar escuchando.
+      expect(find.text('Escuchando… toca para terminar'), findsNothing);
+      expect(find.text('Registrar por voz'), findsOneWidget);
     });
 
     testWidgets('leaving the screen cancels the recognizer', (tester) async {

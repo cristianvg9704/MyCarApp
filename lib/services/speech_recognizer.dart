@@ -14,6 +14,18 @@ enum SpeechFailure {
   failed,
 }
 
+/// Mensaje en español para mostrar al usuario según el motivo del fallo.
+String speechFailureMessage(SpeechFailure failure) {
+  switch (failure) {
+    case SpeechFailure.permissionDenied:
+      return 'Activa el micrófono y el reconocimiento de voz para MyCar en Ajustes.';
+    case SpeechFailure.unavailable:
+      return 'Este dispositivo no tiene reconocimiento de voz disponible.';
+    case SpeechFailure.failed:
+      return 'No se pudo reconocer la voz. Intenta de nuevo.';
+  }
+}
+
 /// Reconocimiento de voz a texto. Abstracción sobre el motor del dispositivo
 /// para poder probar las pantallas con un reconocedor falso.
 abstract class SpeechRecognizer {
