@@ -9,6 +9,7 @@ import '../providers/trip_provider.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/trip_format.dart';
 import 'trip_actions.dart';
+import '../utils/my_car_palette.dart';
 
 /// Acceso rápido para iniciar (y detener) un viaje GPS desde el inicio, sin
 /// entrar al detalle del vehículo.
@@ -70,9 +71,9 @@ class _HomeTripCardState extends State<HomeTripCard> {
             ),
             for (final car in cars)
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.directions_car_outlined,
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                 ),
                 title: Text('${car.brand} ${car.model}'),
                 subtitle: car.plateNumber == null
@@ -129,7 +130,7 @@ class _HomeTripCardState extends State<HomeTripCard> {
         children: [
           const _TripIcon(active: false),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -138,14 +139,14 @@ class _HomeTripCardState extends State<HomeTripCard> {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
                   'Mide los km con GPS, incluso con la pantalla apagada.',
                   style: TextStyle(
-                    color: MyCarColors.textSecondary,
+                    color: context.palette.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -189,12 +190,12 @@ class _HomeTripCardState extends State<HomeTripCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Viaje en curso',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -202,8 +203,8 @@ class _HomeTripCardState extends State<HomeTripCard> {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: MyCarColors.textSecondary,
+                      style: TextStyle(
+                        color: context.palette.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -265,7 +266,9 @@ class _CardShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: highlighted ? MyCarColors.primaryLight : Colors.white,
+      color: highlighted
+          ? context.palette.primaryLight
+          : context.palette.background,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -275,7 +278,7 @@ class _CardShell extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: highlighted ? MyCarColors.primary : MyCarColors.border,
+              color: highlighted ? MyCarColors.primary : context.palette.border,
               width: highlighted ? 2 : 1,
             ),
           ),
@@ -299,12 +302,12 @@ class _TripIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: active
             ? MyCarColors.primary
-            : MyCarColors.primaryLight.withValues(alpha: 0.6),
+            : context.palette.primaryLight.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
         active ? Icons.gps_fixed : Icons.route_rounded,
-        color: active ? Colors.white : MyCarColors.primary,
+        color: active ? Colors.white : context.palette.accent,
       ),
     );
   }
@@ -327,8 +330,8 @@ class _Stat extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: MyCarColors.textSecondary,
+          style: TextStyle(
+            color: context.palette.textSecondary,
             fontSize: 12,
           ),
         ),
@@ -336,10 +339,10 @@ class _Stat extends StatelessWidget {
         Text(
           value,
           key: valueKey,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
-            color: MyCarColors.textPrimary,
+            color: context.palette.textPrimary,
           ),
         ),
       ],

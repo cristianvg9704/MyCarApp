@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../services/social_auth_service.dart';
-import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 /// Separador "o continúa con" y botones para Apple y Google. Sirven tanto para
 /// iniciar sesión como para crear la cuenta.
@@ -26,20 +26,20 @@ class SocialAuthButtons extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Row(
+        Row(
           children: [
-            Expanded(child: Divider(color: MyCarColors.border)),
+            Expanded(child: Divider(color: context.palette.border)),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 'o continúa con',
                 style: TextStyle(
-                  color: MyCarColors.textSecondary,
+                  color: context.palette.textSecondary,
                   fontSize: 13,
                 ),
               ),
             ),
-            Expanded(child: Divider(color: MyCarColors.border)),
+            Expanded(child: Divider(color: context.palette.border)),
           ],
         ),
         const SizedBox(height: 16),
@@ -61,9 +61,9 @@ class SocialAuthButtons extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           style: OutlinedButton.styleFrom(
-            foregroundColor: MyCarColors.textPrimary,
+            foregroundColor: context.palette.textPrimary,
             minimumSize: const Size.fromHeight(52),
-            side: const BorderSide(color: MyCarColors.border, width: 1.5),
+            side: BorderSide(color: context.palette.border, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),

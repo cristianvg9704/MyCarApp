@@ -9,6 +9,7 @@ import '../utils/transaction_chart_utils.dart';
 import '../utils/transaction_modal_helper.dart';
 import '../utils/vehicle_image_helper.dart';
 import '../utils/vehicle_modal_helper.dart';
+import '../utils/my_car_palette.dart';
 
 class FinancesListScreen extends StatefulWidget {
   final TransactionRepository? repository;
@@ -72,7 +73,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         title: Text(
           'Finanzas',
@@ -88,12 +89,12 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: MyCarColors.primaryLight,
+                  color: context.palette.primaryLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                   size: 22,
                 ),
               ),
@@ -122,7 +123,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                     carProvider.errorMessage!,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -150,13 +151,13 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                     Container(
                       padding: const EdgeInsets.all(40),
                       decoration: BoxDecoration(
-                        color: MyCarColors.primaryLight.withValues(alpha: 0.3),
+                        color: context.palette.primaryLight.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.directions_car_outlined,
                         size: 72,
-                        color: MyCarColors.primary,
+                        color: context.palette.accent,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -165,7 +166,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: MyCarColors.textPrimary,
+                            color: context.palette.textPrimary,
                             letterSpacing: -0.5,
                           ),
                       textAlign: TextAlign.center,
@@ -174,7 +175,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                     Text(
                       'Agrega un vehículo para comenzar\na registrar ingresos y egresos',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -223,7 +224,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.palette.background,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
@@ -280,7 +281,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                           .titleMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.w600,
-                                            color: MyCarColors.textPrimary,
+                                            color: context.palette.textPrimary,
                                             letterSpacing: -0.3,
                                           ),
                                     ),
@@ -295,7 +296,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                             Icon(
                                               Icons.calendar_today_outlined,
                                               size: 14,
-                                              color: MyCarColors.textSecondary,
+                                              color: context.palette.textSecondary,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
@@ -304,8 +305,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                                   .textTheme
                                                   .bodySmall
                                                   ?.copyWith(
-                                                    color: MyCarColors
-                                                        .textSecondary,
+                                                    color: context.palette.textSecondary,
                                                     fontSize: 13,
                                                   ),
                                             ),
@@ -320,7 +320,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                                     .confirmation_number_outlined,
                                                 size: 14,
                                                 color:
-                                                    MyCarColors.textSecondary,
+                                                    context.palette.textSecondary,
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
@@ -329,8 +329,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                                     .textTheme
                                                     .bodySmall
                                                     ?.copyWith(
-                                                      color: MyCarColors
-                                                          .textSecondary,
+                                                      color: context.palette.textSecondary,
                                                       fontSize: 13,
                                                     ),
                                               ),
@@ -341,10 +340,10 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                     const SizedBox(height: 10),
                                     Row(
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.account_balance_wallet_outlined,
                                           size: 18,
-                                          color: MyCarColors.primary,
+                                          color: context.palette.accent,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
@@ -357,7 +356,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                               ?.copyWith(
                                                 color:
                                                     (summary?.balance ?? 0) >= 0
-                                                    ? MyCarColors.primary
+                                                    ? context.palette.accent
                                                     : MyCarColors.error,
                                                 fontWeight: FontWeight.w600,
                                               ),
@@ -372,7 +371,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                           .textTheme
                                           .bodySmall
                                           ?.copyWith(
-                                            color: MyCarColors.textSecondary,
+                                            color: context.palette.textSecondary,
                                             fontSize: 12,
                                           ),
                                     ),
@@ -380,9 +379,9 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.mic_none_rounded,
-                                  color: MyCarColors.primary,
+                                  color: context.palette.accent,
                                 ),
                                 onPressed: () {
                                   if (car.id != null) {
@@ -397,7 +396,7 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                               IconButton(
                                 icon: Icon(
                                   Icons.history_rounded,
-                                  color: MyCarColors.textTertiary,
+                                  color: context.palette.textTertiary,
                                 ),
                                 onPressed: () {
                                   if (car.id != null) {

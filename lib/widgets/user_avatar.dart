@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 /// Foto de perfil circular. Muestra la foto del usuario si existe y, si no se
 /// puede leer, la imagen por defecto (y como último recurso un icono).
@@ -29,6 +29,6 @@ class UserAvatar extends StatelessWidget {
     defaultAsset,
     fit: BoxFit.cover,
     errorBuilder: (context, error, stackTrace) =>
-        Icon(Icons.person, size: iconSize, color: MyCarColors.textSecondary),
+        Icon(Icons.person, size: iconSize, color: context.palette.textSecondary),
   );
 }

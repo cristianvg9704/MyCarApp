@@ -4,6 +4,7 @@ import '../screens/add_vehicle_screen.dart';
 import '../screens/edit_vehicle_screen.dart';
 import '../providers/car_provider.dart';
 import '../models/car.dart';
+import 'my_car_palette.dart';
 
 class VehicleModalHelper {
   /// Muestra un modal desde abajo para agregar un vehículo
@@ -32,8 +33,8 @@ class VehicleModalHelper {
             maxChildSize: 0.95,
             expand: false,
             builder: (sheetContext, scrollController) => Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: context.palette.background,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -44,7 +45,7 @@ class VehicleModalHelper {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: context.palette.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -137,8 +138,8 @@ class VehicleModalHelper {
             maxChildSize: 0.95,
             expand: false,
             builder: (sheetContext, scrollController) => Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: context.palette.background,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -149,7 +150,7 @@ class VehicleModalHelper {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: context.palette.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),

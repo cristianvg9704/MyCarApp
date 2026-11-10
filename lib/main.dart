@@ -42,6 +42,7 @@ import 'config/app_env.dart';
 import 'config/supabase_config.dart';
 import 'config/app_config.dart';
 import 'utils/app_logging.dart';
+import 'utils/my_car_palette.dart';
 
 void main() async {
   // Asegurar que Flutter esté inicializado
@@ -472,7 +473,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.palette.background,
                 borderRadius: BorderRadius.circular(50),
               ),
               child: Row(

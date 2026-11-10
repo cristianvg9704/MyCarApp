@@ -7,6 +7,7 @@ import '../providers/transaction_provider.dart';
 import '../services/speech_recognizer.dart';
 import '../widgets/voice_entry_sheet.dart';
 import 'my_car_colors.dart';
+import 'my_car_palette.dart';
 
 class TransactionModalHelper {
   /// Muestra un modal desde abajo para registrar un ingreso o un egreso
@@ -40,7 +41,7 @@ class TransactionModalHelper {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: context.palette.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

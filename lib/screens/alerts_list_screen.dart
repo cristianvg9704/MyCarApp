@@ -7,6 +7,7 @@ import '../providers/car_provider.dart';
 import '../models/alert.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 class AlertsListScreen extends StatefulWidget {
   const AlertsListScreen({super.key});
@@ -54,7 +55,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         title: Text(
           'Alertas',
@@ -70,12 +71,12 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: MyCarColors.primaryLight,
+                  color: context.palette.primaryLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                   size: 22,
                 ),
               ),
@@ -111,13 +112,13 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                     Container(
                       padding: const EdgeInsets.all(40),
                       decoration: BoxDecoration(
-                        color: MyCarColors.primaryLight.withValues(alpha: 0.3),
+                        color: context.palette.primaryLight.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.directions_car_outlined,
                         size: 72,
-                        color: MyCarColors.primary,
+                        color: context.palette.accent,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -125,7 +126,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                       'No hay vehículos',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
@@ -134,7 +135,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                     Text(
                       'Agrega un vehículo para comenzar\na crear alertas',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -157,13 +158,13 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                     Container(
                       padding: const EdgeInsets.all(40),
                       decoration: BoxDecoration(
-                        color: MyCarColors.primaryLight.withValues(alpha: 0.3),
+                        color: context.palette.primaryLight.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.notifications_outlined,
                         size: 72,
-                        color: MyCarColors.primary,
+                        color: context.palette.accent,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -171,7 +172,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                       'No hay alertas',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
@@ -180,7 +181,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                     Text(
                       'Crea alertas para recordatorios\nde mantenimiento y pagos',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -228,7 +229,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
               // Filtros
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                color: Colors.white,
+                color: context.palette.background,
                 child: Row(
                   children: [
                     Expanded(
@@ -288,14 +289,14 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                               Icon(
                                 _getFilterIcon(alertProvider.filter),
                                 size: 64,
-                                color: MyCarColors.textTertiary,
+                                color: context.palette.textTertiary,
                               ),
                               const SizedBox(height: 24),
                               Text(
                                 _getFilterMessage(alertProvider.filter),
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: MyCarColors.textPrimary,
+                                  color: context.palette.textPrimary,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -303,7 +304,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                               Text(
                                 _getFilterSubmessage(alertProvider.filter),
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: MyCarColors.textSecondary,
+                                  color: context.palette.textSecondary,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -348,10 +349,10 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onTap(),
-      selectedColor: MyCarColors.primaryLight,
-      checkmarkColor: MyCarColors.primary,
+      selectedColor: context.palette.primaryLight,
+      checkmarkColor: context.palette.accent,
       labelStyle: TextStyle(
-        color: isSelected ? MyCarColors.primary : MyCarColors.textSecondary,
+        color: isSelected ? context.palette.accent : context.palette.textSecondary,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
         fontSize: 14,
       ),
@@ -440,7 +441,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
       statusIcon = Icons.schedule;
       statusText = 'Próxima';
     } else {
-      statusColor = MyCarColors.textSecondary;
+      statusColor = context.palette.textSecondary;
       statusIcon = Icons.calendar_today;
       statusText = DateFormat('dd/MM/yyyy').format(alert.alertDate);
     }
@@ -451,7 +452,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isOverdue ? MyCarColors.error.withValues(alpha: 0.3) : MyCarColors.border,
+          color: isOverdue ? MyCarColors.error.withValues(alpha: 0.3) : context.palette.border,
           width: 1,
         ),
       ),
@@ -489,7 +490,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: MyCarColors.textPrimary,
+                            color: context.palette.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -497,7 +498,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                           '${car.brand} ${car.model}',
                           style: TextStyle(
                             fontSize: 13,
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                           ),
                         ),
                       ],
@@ -507,7 +508,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                     ),
                     onSelected: (value) async {
                       // Guardar referencias antes de operaciones asíncronas
@@ -606,7 +607,7 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                   alert.description!,
                   style: TextStyle(
                     fontSize: 14,
-                    color: MyCarColors.textSecondary,
+                    color: context.palette.textSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -617,14 +618,14 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                   Icon(
                     Icons.calendar_today,
                     size: 14,
-                    color: MyCarColors.textTertiary,
+                    color: context.palette.textTertiary,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     DateFormat('dd/MM/yyyy').format(alert.alertDate),
                     style: TextStyle(
                       fontSize: 13,
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                     ),
                   ),
                   if (alert.isRecurring) ...[
@@ -632,14 +633,14 @@ class _AlertsListScreenState extends State<AlertsListScreen> {
                     Icon(
                       Icons.repeat,
                       size: 14,
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       _getRecurrenceText(alert),
                       style: TextStyle(
                         fontSize: 13,
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                       ),
                     ),
                   ],

@@ -13,6 +13,7 @@ import '../utils/currency_formatter.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/trip_format.dart';
 import 'trip_actions.dart';
+import '../utils/my_car_palette.dart';
 
 class CarMileageTab extends StatefulWidget {
   final String carId;
@@ -367,7 +368,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
                 Text(
                   'Asegúrate de ejecutar la migración SQL en Supabase (docs/SUPABASE_MILEAGE_MIGRATION.md)',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: MyCarColors.textSecondary, fontSize: 13),
+                  style: TextStyle(color: context.palette.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -471,11 +472,11 @@ class _CarMileageTabState extends State<CarMileageTab> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isActive
-            ? MyCarColors.primaryLight
-            : MyCarColors.backgroundLight,
+            ? context.palette.primaryLight
+            : context.palette.backgroundLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive ? MyCarColors.primary : MyCarColors.border,
+          color: isActive ? MyCarColors.primary : context.palette.border,
           width: isActive ? 2 : 1,
         ),
       ),
@@ -486,7 +487,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
             children: [
               Icon(
                 isActive ? Icons.gps_fixed : Icons.route,
-                color: isActive ? MyCarColors.primary : MyCarColors.textSecondary,
+                color: isActive ? context.palette.accent : context.palette.textSecondary,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -515,7 +516,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
                 ? 'Funciona en segundo plano con pantalla apagada'
                 : 'Pulsa Empezar antes de conducir. MyCar calculará los km con GPS.',
             style: TextStyle(
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -565,15 +566,15 @@ class _CarMileageTabState extends State<CarMileageTab> {
       children: [
         Text(
           label,
-          style: TextStyle(color: MyCarColors.textSecondary, fontSize: 12),
+          style: TextStyle(color: context.palette.textSecondary, fontSize: 12),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
-            color: MyCarColors.primary,
+            color: context.palette.accent,
           ),
         ),
       ],
@@ -584,8 +585,8 @@ class _CarMileageTabState extends State<CarMileageTab> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
-        backgroundColor: MyCarColors.secondaryLight,
-        child: Icon(Icons.route, color: MyCarColors.secondary, size: 20),
+        backgroundColor: context.palette.secondaryLight,
+        child: Icon(Icons.route, color: context.palette.accentSecondary, size: 20),
       ),
       title: Text('${trip.distanceKm.toStringAsFixed(1)} km'),
       subtitle: Text(
@@ -663,9 +664,9 @@ class _CarMileageTabState extends State<CarMileageTab> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: MyCarColors.backgroundLight,
+        color: context.palette.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MyCarColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,13 +683,13 @@ class _CarMileageTabState extends State<CarMileageTab> {
               padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
                 children: [
-                  Icon(icon, size: 18, color: MyCarColors.textSecondary),
+                  Icon(icon, size: 18, color: context.palette.textSecondary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       text,
                       style: TextStyle(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -705,13 +706,13 @@ class _CarMileageTabState extends State<CarMileageTab> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: MyCarColors.backgroundLight,
+        color: context.palette.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MyCarColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Column(
         children: [
-          Icon(Icons.build_outlined, size: 48, color: MyCarColors.textTertiary),
+          Icon(Icons.build_outlined, size: 48, color: context.palette.textTertiary),
           const SizedBox(height: 12),
           const Text(
             'Registra tus servicios (aceite, frenos, llantas...). Con dos '
@@ -733,13 +734,13 @@ class _CarMileageTabState extends State<CarMileageTab> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: MyCarColors.backgroundLight,
+        color: context.palette.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MyCarColors.border),
+        border: Border.all(color: context.palette.border),
       ),
       child: Column(
         children: [
-          Icon(Icons.speed, size: 48, color: MyCarColors.textTertiary),
+          Icon(Icons.speed, size: 48, color: context.palette.textTertiary),
           const SizedBox(height: 12),
           const Text(
             'Registra el odómetro y tus servicios para recibir recomendaciones basadas en tu propio historial',
@@ -765,7 +766,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
       MaintenanceStatus.overdue => MyCarColors.error,
       MaintenanceStatus.soon => MyCarColors.warning,
       MaintenanceStatus.ok => MyCarColors.success,
-      MaintenanceStatus.needsHistory => MyCarColors.textSecondary,
+      MaintenanceStatus.needsHistory => context.palette.textSecondary,
     };
 
     final progress = rec.progress;
@@ -774,7 +775,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: MyCarColors.backgroundLight,
+        color: context.palette.backgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
@@ -814,7 +815,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
           const SizedBox(height: 8),
           Text(
             _lastServiceText(rec),
-            style: TextStyle(color: MyCarColors.textSecondary, fontSize: 13),
+            style: TextStyle(color: context.palette.textSecondary, fontSize: 13),
           ),
           if (progress != null) ...[
             const SizedBox(height: 12),
@@ -823,7 +824,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
-                backgroundColor: MyCarColors.border,
+                backgroundColor: context.palette.border,
                 color: color,
               ),
             ),
@@ -831,7 +832,7 @@ class _CarMileageTabState extends State<CarMileageTab> {
           const SizedBox(height: 8),
           Text(
             _recommendationDetail(rec),
-            style: TextStyle(color: MyCarColors.textSecondary, fontSize: 12),
+            style: TextStyle(color: context.palette.textSecondary, fontSize: 12),
           ),
           if (rec.isOverdue || rec.isSoon) ...[
             const SizedBox(height: 12),
@@ -894,8 +895,8 @@ class _CarMileageTabState extends State<CarMileageTab> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
-        backgroundColor: MyCarColors.primaryLight,
-        child: Icon(Icons.speed, color: MyCarColors.primary, size: 20),
+        backgroundColor: context.palette.primaryLight,
+        child: Icon(Icons.speed, color: context.palette.accent, size: 20),
       ),
       title: Text('${NumberFormat('#,##0').format(reading.odometerKm)} km'),
       subtitle: Text(DateFormat('dd/MM/yyyy').format(reading.readingDate)),

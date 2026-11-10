@@ -7,6 +7,7 @@ import '../../services/social_auth_service.dart';
 import '../../utils/auth_navigation.dart';
 import '../../widgets/social_auth_buttons.dart';
 import '../../utils/my_car_colors.dart';
+import '../../utils/my_car_palette.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -88,12 +89,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.background,
+      backgroundColor: context.palette.background,
       appBar: AppBar(
-        backgroundColor: MyCarColors.background,
+        backgroundColor: context.palette.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: MyCarColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: context.palette.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -110,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -119,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   'Completa los datos para registrarte',
                   style: TextStyle(
                     fontSize: 16,
-                    color: MyCarColors.textSecondary,
+                    color: context.palette.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -131,24 +132,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Nombre completo *',
                     hintText: 'Ej: Juan Pérez',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -164,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -184,24 +185,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Correo electrónico *',
                     hintText: 'ejemplo@correo.com',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -217,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -240,24 +241,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Teléfono *',
                     hintText: 'Ej: +57 300 123 4567',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -273,7 +274,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -293,12 +294,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Contraseña *',
                     hintText: 'Mínimo 6 caracteres',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                       ),
                       onPressed: () {
                         setState(() {
@@ -307,21 +308,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -337,7 +338,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -360,12 +361,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Confirmar contraseña *',
                     hintText: 'Repite tu contraseña',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                       ),
                       onPressed: () {
                         setState(() {
@@ -374,21 +375,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -404,7 +405,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -470,7 +471,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Text(
                       '¿Ya tienes una cuenta? ',
                       style: TextStyle(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -481,7 +482,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Text(
                         'Inicia sesión',
                         style: TextStyle(
-                          color: MyCarColors.primary,
+                          color: context.palette.accent,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),

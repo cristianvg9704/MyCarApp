@@ -6,6 +6,7 @@ import '../../services/social_auth_service.dart';
 import '../../utils/auth_navigation.dart';
 import '../../utils/my_car_colors.dart';
 import '../../widgets/social_auth_buttons.dart';
+import '../../utils/my_car_palette.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.background,
+      backgroundColor: context.palette.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -89,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -98,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Inicia sesión en tu cuenta',
                   style: TextStyle(
                     fontSize: 16,
-                    color: MyCarColors.textSecondary,
+                    color: context.palette.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -111,24 +112,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Correo electrónico *',
                     hintText: 'ejemplo@correo.com',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -144,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -167,12 +168,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Contraseña *',
                     hintText: 'Ingresa tu contraseña',
                     filled: true,
-                    fillColor: MyCarColors.backgroundLight,
+                    fillColor: context.palette.backgroundLight,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                       ),
                       onPressed: () {
                         setState(() {
@@ -181,21 +182,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     labelStyle: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                     hintStyle: TextStyle(
-                      color: MyCarColors.textTertiary,
+                      color: context.palette.textTertiary,
                       fontSize: 15,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                      borderSide: BorderSide(color: context.palette.border, width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -211,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   style: TextStyle(
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -236,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       '¿Olvidaste tu contraseña?',
                       style: TextStyle(
-                        color: MyCarColors.primary,
+                        color: context.palette.accent,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -296,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       '¿No tienes una cuenta? ',
                       style: TextStyle(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -307,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Regístrate',
                         style: TextStyle(
-                          color: MyCarColors.primary,
+                          color: context.palette.accent,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),

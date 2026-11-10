@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'my_car_colors.dart';
+import 'my_car_palette.dart';
 
-/// Decoración estándar de campos de formulario de MyCar.
-InputDecoration myCarInputDecoration({
+/// Decoración estándar de campos de formulario de MyCar. Los colores salen del
+/// tema (claro u oscuro) a través de [context]; [fillColor] los reemplaza.
+InputDecoration myCarInputDecoration(
+  BuildContext context, {
   required String label,
   String? hint,
   double radius = 12,
-  Color fillColor = MyCarColors.backgroundLight,
+  Color? fillColor,
 }) {
   OutlineInputBorder border(Color color, double width) => OutlineInputBorder(
     borderRadius: BorderRadius.circular(radius),
@@ -17,24 +20,25 @@ InputDecoration myCarInputDecoration({
     labelText: label,
     hintText: hint,
     filled: true,
-    fillColor: fillColor,
+    fillColor: fillColor ?? context.palette.backgroundLight,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    labelStyle: const TextStyle(
-      color: MyCarColors.textSecondary,
+    labelStyle: TextStyle(
+      color: context.palette.textSecondary,
       fontSize: 14,
       fontWeight: FontWeight.w500,
     ),
-    hintStyle: const TextStyle(color: MyCarColors.textTertiary, fontSize: 15),
-    border: border(MyCarColors.border, 1.5),
-    enabledBorder: border(MyCarColors.border, 1.5),
+    hintStyle: TextStyle(color: context.palette.textTertiary, fontSize: 15),
+    border: border(context.palette.border, 1.5),
+    enabledBorder: border(context.palette.border, 1.5),
     focusedBorder: border(MyCarColors.primary, 2),
     errorBorder: border(MyCarColors.error, 1.5),
     focusedErrorBorder: border(MyCarColors.error, 2),
   );
 }
 
-const TextStyle myCarInputTextStyle = TextStyle(
-  color: MyCarColors.textPrimary,
+/// Estilo del texto que escribe el usuario en un campo de formulario.
+TextStyle myCarInputTextStyle(BuildContext context) => TextStyle(
+  color: context.palette.textPrimary,
   fontSize: 15,
   fontWeight: FontWeight.w500,
 );

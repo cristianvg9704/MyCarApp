@@ -4,6 +4,7 @@ import '../../models/car.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/my_car_colors.dart';
 import '../../utils/vehicle_image_helper.dart';
+import '../../utils/my_car_palette.dart';
 
 /// Tab "Detalle": imagen e información general del vehículo.
 class CarInfoTab extends StatelessWidget {
@@ -44,7 +45,7 @@ class CarInfoTab extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.palette.background,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -81,7 +82,7 @@ class CarInfoTab extends StatelessWidget {
                     'Notas',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 12,
                       letterSpacing: 0.5,
                     ),
@@ -90,7 +91,7 @@ class CarInfoTab extends StatelessWidget {
                   Text(
                     car.notes!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MyCarColors.textPrimary,
+                      color: context.palette.textPrimary,
                       height: 1.5,
                       fontSize: 15,
                     ),
@@ -121,7 +122,7 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w400,
             ),
@@ -132,7 +133,7 @@ class _InfoRow extends StatelessWidget {
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
-              color: MyCarColors.textPrimary,
+              color: context.palette.textPrimary,
               fontSize: 15,
             ),
           ),

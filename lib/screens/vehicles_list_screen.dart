@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/car_provider.dart';
 import '../utils/app_theme.dart';
+import '../utils/my_car_palette.dart';
 
 class VehiclesListScreen extends StatelessWidget {
   const VehiclesListScreen({super.key});
@@ -135,13 +136,13 @@ class VehiclesListScreen extends StatelessWidget {
                                 Icon(
                                   Icons.calendar_today,
                                   size: 14,
-                                  color: Colors.grey[600],
+                                  color: context.palette.textSecondary,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Año ${car.year}',
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey[600],
+                                    color: context.palette.textSecondary,
                                   ),
                                 ),
                                 if (car.plateNumber != null) ...[
@@ -149,13 +150,13 @@ class VehiclesListScreen extends StatelessWidget {
                                   Icon(
                                     Icons.confirmation_number,
                                     size: 14,
-                                    color: Colors.grey[600],
+                                    color: context.palette.textSecondary,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     car.plateNumber!,
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.grey[600],
+                                      color: context.palette.textSecondary,
                                     ),
                                   ),
                                 ],

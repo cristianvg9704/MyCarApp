@@ -7,6 +7,7 @@ import '../providers/car_provider.dart';
 import '../models/alert.dart';
 import '../utils/my_car_colors.dart';
 import '../config/supabase_config.dart';
+import '../utils/my_car_palette.dart';
 
 class AddAlertScreen extends StatefulWidget {
   final String? initialCarId;
@@ -116,7 +117,8 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            // Conserva el modo (claro/oscuro) del tema y solo fija el acento.
+            colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: MyCarColors.primary,
             ),
           ),
@@ -215,7 +217,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.palette.background,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: const EdgeInsets.all(10),
@@ -240,7 +242,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                               Text(
                                 'No hay vehículos registrados',
                                 style: TextStyle(
-                                  color: MyCarColors.textSecondary,
+                                  color: context.palette.textSecondary,
                                   fontSize: 15,
                                 ),
                               ),
@@ -253,7 +255,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                           decoration: InputDecoration(
                             labelText: 'Vehículo *',
                             filled: true,
-                            fillColor: MyCarColors.backgroundLight,
+                            fillColor: context.palette.backgroundLight,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 16,
@@ -261,14 +263,14 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: MyCarColors.border,
+                                color: context.palette.border,
                                 width: 1.5,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: MyCarColors.border,
+                                color: context.palette.border,
                                 width: 1.5,
                               ),
                             ),
@@ -300,7 +302,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                               child: Text(
                                 '${car.brand} ${car.model} (${car.year})',
                                 style: TextStyle(
-                                  color: MyCarColors.textPrimary,
+                                  color: context.palette.textPrimary,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -329,7 +331,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                       decoration: InputDecoration(
                         labelText: 'Título *',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -337,14 +339,14 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -386,7 +388,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                       decoration: InputDecoration(
                         labelText: 'Descripción (opcional)',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -394,14 +396,14 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -426,10 +428,10 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: MyCarColors.backgroundLight,
+                          color: context.palette.backgroundLight,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -437,7 +439,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                           children: [
                             Icon(
                               Icons.calendar_today_outlined,
-                              color: MyCarColors.textSecondary,
+                              color: context.palette.textSecondary,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -448,7 +450,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                                   Text(
                                     'Fecha *',
                                     style: TextStyle(
-                                      color: MyCarColors.textSecondary,
+                                      color: context.palette.textSecondary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -457,7 +459,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                                   Text(
                                     DateFormat('dd/MM/yyyy').format(_selectedDate),
                                     style: TextStyle(
-                                      color: MyCarColors.textPrimary,
+                                      color: context.palette.textPrimary,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -467,7 +469,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                             ),
                             Icon(
                               Icons.chevron_right,
-                              color: MyCarColors.textTertiary,
+                              color: context.palette.textTertiary,
                               size: 20,
                             ),
                           ],
@@ -486,10 +488,10 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: MyCarColors.backgroundLight,
+                          color: context.palette.backgroundLight,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -497,7 +499,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                           children: [
                             Icon(
                               Icons.access_time_outlined,
-                              color: MyCarColors.textSecondary,
+                              color: context.palette.textSecondary,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -508,7 +510,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                                   Text(
                                     'Hora de notificación',
                                     style: TextStyle(
-                                      color: MyCarColors.textSecondary,
+                                      color: context.palette.textSecondary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -517,7 +519,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                                   Text(
                                     _selectedTime.format(context),
                                     style: TextStyle(
-                                      color: MyCarColors.textPrimary,
+                                      color: context.palette.textPrimary,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -527,7 +529,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                             ),
                             Icon(
                               Icons.chevron_right,
-                              color: MyCarColors.textTertiary,
+                              color: context.palette.textTertiary,
                               size: 20,
                             ),
                           ],
@@ -543,7 +545,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                         labelText: 'Notificar días antes',
                         hintText: 'No notificar antes',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -551,14 +553,14 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -593,7 +595,9 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                     const SizedBox(height: 16),
 
                     // Toggle de recurrencia
-                    SwitchListTile(
+                    Material(
+                      type: MaterialType.transparency,
+                      child: SwitchListTile(
                       title: const Text('Alerta recurrente'),
                       subtitle: const Text('La alerta se repetirá automáticamente'),
                       value: _isRecurring,
@@ -610,6 +614,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                       activeColor: MyCarColors.primary,
                       contentPadding: EdgeInsets.zero,
                     ),
+                    ),
 
                     // Configuración de recurrencia
                     if (_isRecurring) ...[
@@ -619,7 +624,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                         decoration: InputDecoration(
                           labelText: 'Tipo de recurrencia',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 16,
@@ -659,7 +664,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                                     ? 'Cada cuántas semanas'
                                     : 'Cada cuántos meses',
                             filled: true,
-                            fillColor: MyCarColors.backgroundLight,
+                            fillColor: context.palette.backgroundLight,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 16,
@@ -683,7 +688,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
                           labelText: '¿Cuántas veces se ejecutará?',
                           hintText: 'Ej: 5 (se ejecutará 5 veces)',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 16,
@@ -748,7 +753,7 @@ class _AddAlertScreenState extends State<AddAlertScreen> {
     }
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

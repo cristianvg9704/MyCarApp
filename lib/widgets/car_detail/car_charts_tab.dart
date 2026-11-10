@@ -7,6 +7,7 @@ import '../../utils/my_car_colors.dart';
 import '../../utils/transaction_chart_utils.dart';
 import '../empty_state.dart';
 import '../stat_card.dart';
+import '../../utils/my_car_palette.dart';
 
 /// Tab "Gráficos": ingresos y egresos por día con selector de período.
 class CarChartsTab extends StatefulWidget {
@@ -61,7 +62,7 @@ class _CarChartsTabState extends State<CarChartsTab> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.palette.background,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -156,8 +157,8 @@ class _CarChartsTabState extends State<CarChartsTab> {
         .reduce((a, b) => a > b ? a : b);
     final maxY = (maxValue == 0 ? 1 : maxValue) * 1.2;
     final yInterval = maxY / 5;
-    const axisLabelStyle = TextStyle(
-      color: MyCarColors.textSecondary,
+    final axisLabelStyle = TextStyle(
+      color: context.palette.textSecondary,
       fontSize: 10,
       fontWeight: FontWeight.w500,
     );
@@ -230,9 +231,9 @@ class _CarChartsTabState extends State<CarChartsTab> {
       ),
       borderData: FlBorderData(
         show: true,
-        border: const Border(
-          bottom: BorderSide(color: MyCarColors.border, width: 1),
-          left: BorderSide(color: MyCarColors.border, width: 1),
+        border: Border(
+          bottom: BorderSide(color: context.palette.border, width: 1),
+          left: BorderSide(color: context.palette.border, width: 1),
         ),
       ),
       gridData: FlGridData(
@@ -240,7 +241,7 @@ class _CarChartsTabState extends State<CarChartsTab> {
         drawVerticalLine: false,
         horizontalInterval: yInterval,
         getDrawingHorizontalLine: (_) => FlLine(
-          color: MyCarColors.border.withValues(alpha: 0.3),
+          color: context.palette.border.withValues(alpha: 0.3),
           strokeWidth: 1,
         ),
       ),
@@ -292,9 +293,9 @@ class _ChartLegend extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: MyCarColors.textSecondary,
+            color: context.palette.textSecondary,
           ),
         ),
       ],
@@ -327,7 +328,7 @@ class _ExpenseBreakdown extends StatelessWidget {
           'Egresos por categoría',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: MyCarColors.textSecondary,
+            color: context.palette.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -371,10 +372,10 @@ class _PeriodChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? MyCarColors.secondary.withValues(alpha: 0.1)
-              : MyCarColors.backgroundLight,
+              : context.palette.backgroundLight,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? MyCarColors.secondary : MyCarColors.border,
+            color: isSelected ? MyCarColors.secondary : context.palette.border,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -385,8 +386,8 @@ class _PeriodChip extends StatelessWidget {
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               color: isSelected
-                  ? MyCarColors.secondary
-                  : MyCarColors.textSecondary,
+                  ? context.palette.accentSecondary
+                  : context.palette.textSecondary,
             ),
           ),
         ),

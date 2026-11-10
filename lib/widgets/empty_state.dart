@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 /// Estado vacío reutilizable: icono, título y mensaje centrados.
 class EmptyState extends StatelessWidget {
@@ -22,13 +22,13 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: MyCarColors.textTertiary),
+            Icon(icon, size: 64, color: context.palette.textTertiary),
             const SizedBox(height: 16),
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: MyCarColors.textSecondary,
+                color: context.palette.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -36,7 +36,7 @@ class EmptyState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: MyCarColors.textSecondary,
+                color: context.palette.textSecondary,
               ),
             ),
           ],

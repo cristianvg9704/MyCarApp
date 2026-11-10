@@ -12,6 +12,7 @@ import '../widgets/car_detail/car_charts_tab.dart';
 import '../widgets/car_detail/car_transactions_tab.dart';
 import '../widgets/car_detail/car_info_tab.dart';
 import '../widgets/car_mileage_tab.dart';
+import '../utils/my_car_palette.dart';
 
 typedef CarLoader = Future<Car?> Function(String carId);
 typedef TransactionsLoader =
@@ -157,7 +158,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   }
 
   Widget _buildVoiceAction() => IconButton(
-    icon: const Icon(Icons.mic_none_rounded, color: MyCarColors.primary),
+    icon: Icon(Icons.mic_none_rounded, color: context.palette.accent),
     tooltip: 'Registrar por voz',
     onPressed: _addByVoice,
   );
@@ -185,7 +186,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: MyCarColors.backgroundLight,
+        backgroundColor: context.palette.backgroundLight,
         appBar: AppBar(
           leading: _backButton(),
           title: _title('Detalle del Vehículo'),
@@ -200,7 +201,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: MyCarColors.backgroundLight,
+        backgroundColor: context.palette.backgroundLight,
         appBar: AppBar(
           leading: _backButton(),
           title: _title('${car.brand} ${car.model}'),
@@ -236,7 +237,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.palette.background,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: CarMileageTab(
@@ -254,7 +255,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
 
   Widget _buildNotFound(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: _backButton(),
         title: _title('Detalle del Vehículo'),
@@ -270,7 +271,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
               'Vehículo no encontrado',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: MyCarColors.textPrimary,
+                color: context.palette.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
@@ -311,12 +312,12 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: MyCarColors.primaryLight.withValues(alpha: 0.5),
+            color: context.palette.primaryLight.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.more_vert,
-            color: MyCarColors.primary,
+            color: context.palette.accent,
             size: 20,
           ),
         ),
@@ -335,9 +336,9 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
             value: 'edit',
             label: 'Editar',
             icon: Icons.edit_outlined,
-            color: MyCarColors.primary,
-            background: MyCarColors.primaryLight,
-            textColor: MyCarColors.textPrimary,
+            color: context.palette.accent,
+            background: context.palette.primaryLight,
+            textColor: context.palette.textPrimary,
           ),
           _menuItem(
             value: 'delete',

@@ -10,12 +10,27 @@ Base: Material 3 (`useMaterial3: true`) con tema en `lib/utils/app_theme.dart` y
 variantes `.adaptive` (Switch, diálogos) cuando se quiera comportamiento nativo en iOS.
 
 ## Reglas
-- Colores siempre de `MyCarColors` (`primary`, `secondary`, `success`, `error`, `warning`,
-  `textPrimary/Secondary/Tertiary`, `border`, `backgroundLight`). No hardcodear `Color(0x...)` ni `Colors.red/green`
-  en pantallas nuevas (los existentes se migran de a poco).
+- **Colores (modo claro y oscuro):**
+  - Colores de **marca y estado** (`MyCarColors.primary`, `secondary`, `success`, `error`, `warning`, `primaryGradient`) se usan
+    directo: se ven bien en ambos modos (sobre todo como fondo de botón o borde).
+  - Colores que **dependen del fondo** (texto, bordes, superficies, tintes) se leen del tema: `context.palette.textPrimary`,
+    `textSecondary`, `textTertiary`, `textLabel`, `border`, `borderLight`, `background` (tarjetas, hojas, diálogos),
+    `backgroundLight` (fondo de pantalla), `surfaceMuted`, `primaryLight`, `primarySoft`, `secondaryLight`, `income`,
+    `expense` (y sus `*Light`). **Nunca** `MyCarColors.textPrimary`/`border`/`background`… ni `Colors.white`/`Colors.grey` como
+    fondo o texto de UI: en modo oscuro quedan texto casi negro sobre fondo oscuro. Un test lo impide.
+  - Índigo o azul como **texto o ícono** sobre una superficie: `context.palette.accent` / `accentSecondary` (más claros en oscuro;
+    `#4F46E5` sobre gris oscuro solo contrasta 2,3:1). `Colors.white` sí es válido para texto/íconos sobre un fondo de color
+    (botones índigo, degradado del encabezado).
+  - La paleta está en `lib/utils/my_car_palette.dart` (`MyCarPalette.light/dark`, `ThemeExtension`); `AppTheme` la registra y
+    alinea `ColorScheme`, diálogos, hojas, snackbars, botones de texto y pestañas en oscuro. Sin `AppTheme` (tests con un
+    `MaterialApp` pelado) `context.palette` cae a la clara.
+  - Como leen el tema, estos widgets **no pueden ser `const`**.
+  - No hardcodear `Color(0x...)` ni `Colors.red/green` en pantallas nuevas.
+  - Al crear una pantalla, agrégala a `test/widgets/dark_mode_test.dart`: renderiza con el tema oscuro y falla si algún texto
+    contrasta menos de 3:1 con su fondo.
 - Tipografía desde `Theme.of(context).textTheme`; solo ajustar `fontWeight`/`color` con `copyWith`.
-- Fondo de pantalla: `MyCarColors.backgroundLight`; superficies (tarjetas) blancas con radio 12–16
-  y borde `MyCarColors.border` (o sombra suave `black @ 0.08`).
+- Fondo de pantalla: `context.palette.backgroundLight`; superficies (tarjetas) `context.palette.background` con radio 12–16
+  y borde `context.palette.border` (o sombra suave `black @ 0.08`).
 - Padding horizontal de contenido: 16. Padding inferior de listas/scroll:
   `MediaQuery.of(context).padding.bottom + 40`.
 - Ingresos/positivo → `MyCarColors.success`; egresos/negativo → `MyCarColors.error`.

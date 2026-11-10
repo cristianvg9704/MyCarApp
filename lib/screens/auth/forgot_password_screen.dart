@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/my_car_colors.dart';
+import '../../utils/my_car_palette.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -49,12 +50,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.background,
+      backgroundColor: context.palette.background,
       appBar: AppBar(
-        backgroundColor: MyCarColors.background,
+        backgroundColor: context.palette.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: MyCarColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: context.palette.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -71,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Icon(
                   Icons.lock_reset_outlined,
                   size: 80,
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -79,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -90,7 +91,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       : 'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña',
                   style: TextStyle(
                     fontSize: 16,
-                    color: MyCarColors.textSecondary,
+                    color: context.palette.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -104,24 +105,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       labelText: 'Correo electrónico *',
                       hintText: 'ejemplo@correo.com',
                       filled: true,
-                      fillColor: MyCarColors.backgroundLight,
+                      fillColor: context.palette.backgroundLight,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       labelStyle: TextStyle(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                       hintStyle: TextStyle(
-                        color: MyCarColors.textTertiary,
+                        color: context.palette.textTertiary,
                         fontSize: 15,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                        borderSide: BorderSide(color: context.palette.border, width: 1.5),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                        borderSide: BorderSide(color: context.palette.border, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -137,7 +138,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                     style: TextStyle(
-                      color: MyCarColors.textPrimary,
+                      color: context.palette.textPrimary,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -190,7 +191,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: MyCarColors.backgroundLight,
+                      color: context.palette.backgroundLight,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: MyCarColors.success, width: 1.5),
                     ),
@@ -206,7 +207,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           child: Text(
                             'Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.',
                             style: TextStyle(
-                              color: MyCarColors.textPrimary,
+                              color: context.palette.textPrimary,
                               fontSize: 14,
                             ),
                           ),

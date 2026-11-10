@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/my_car_colors.dart';
 import '../../config/app_config.dart';
+import '../../utils/my_car_palette.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -70,7 +71,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.background,
+      backgroundColor: context.palette.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -84,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Text(
                     'Omitir',
                     style: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -160,13 +161,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: MyCarColors.primaryLight,
+              color: context.palette.primaryLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
               page.icon,
               size: 60,
-              color: MyCarColors.primary,
+              color: context.palette.accent,
             ),
           ),
           const SizedBox(height: 48),
@@ -176,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: MyCarColors.textPrimary,
+              color: context.palette.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -186,7 +187,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             page.description,
             style: TextStyle(
               fontSize: 16,
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -202,7 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       width: isActive ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: isActive ? MyCarColors.primary : MyCarColors.border,
+        color: isActive ? MyCarColors.primary : context.palette.border,
         borderRadius: BorderRadius.circular(4),
       ),
     );

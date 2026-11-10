@@ -15,6 +15,7 @@ import '../services/speech_recognizer.dart';
 import '../services/voice_transaction_parser.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 /// Resultado con el que se cierra [VoiceEntrySheet].
 sealed class VoiceEntryOutcome {
@@ -226,16 +227,16 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
               ListTile(
                 key: Key('voice_vehicle_option_${car.id}'),
                 minVerticalPadding: 12,
-                leading: const Icon(
+                leading: Icon(
                   Icons.directions_car_outlined,
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                 ),
                 title: Text('${car.brand} ${car.model}'),
                 subtitle: car.plateNumber == null
                     ? null
                     : Text(car.plateNumber!),
                 trailing: car.id == _controller.selectedCarId
-                    ? const Icon(Icons.check, color: MyCarColors.primary)
+                    ? Icon(Icons.check, color: context.palette.accent)
                     : null,
                 onTap: () => Navigator.of(sheetContext).pop(car.id),
               ),
@@ -269,11 +270,11 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
                 minVerticalPadding: 12,
                 leading: Icon(
                   _categoryIcon(category),
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                 ),
                 title: Text(category.label),
                 trailing: category == current
-                    ? const Icon(Icons.check, color: MyCarColors.primary)
+                    ? Icon(Icons.check, color: context.palette.accent)
                     : null,
                 onTap: () => Navigator.of(sheetContext).pop(category),
               ),
@@ -312,9 +313,9 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewPaddingOf(context).bottom;
     return Container(
-      decoration: const BoxDecoration(
-        color: MyCarColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: context.palette.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(24, 12, 24, 34 + bottom),
       child: ListenableBuilder(
@@ -328,7 +329,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: MyCarColors.border,
+                  color: context.palette.border,
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -368,10 +369,10 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
       Expanded(
         child: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
-            color: MyCarColors.textPrimary,
+            color: context.palette.textPrimary,
           ),
         ),
       ),
@@ -394,7 +395,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
     button: true,
     label: label,
     child: Material(
-      color: MyCarColors.surfaceMuted,
+      color: context.palette.surfaceMuted,
       shape: const CircleBorder(),
       child: InkWell(
         key: key,
@@ -403,7 +404,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(icon, color: MyCarColors.textPrimary, size: 22),
+          child: Icon(icon, color: context.palette.textPrimary, size: 22),
         ),
       ),
     ),
@@ -411,11 +412,11 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
 
   Widget _sectionLabel(String text) => Text(
     text.toUpperCase(),
-    style: const TextStyle(
+    style: TextStyle(
       fontSize: 13,
       fontWeight: FontWeight.w600,
       letterSpacing: 0.5,
-      color: MyCarColors.textLabel,
+      color: context.palette.textLabel,
     ),
   );
 
@@ -445,14 +446,14 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Toca el micrófono y habla',
           key: Key('voice_status_label'),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: MyCarColors.textSecondary,
+            color: context.palette.textSecondary,
           ),
         ),
         const SizedBox(height: 28),
@@ -469,15 +470,15 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: MyCarColors.indigo50,
+                  color: context.palette.primarySoft,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '“$example”',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: MyCarColors.primaryDark,
+                    color: context.palette.accent,
                   ),
                 ),
               ),
@@ -502,7 +503,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
               height: 10,
               decoration: BoxDecoration(
                 color: processing
-                    ? MyCarColors.textTertiary
+                    ? context.palette.textTertiary
                     : MyCarColors.primary,
                 shape: BoxShape.circle,
               ),
@@ -511,10 +512,10 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
             Text(
               processing ? 'Procesando…' : 'Escuchando…',
               key: const Key('voice_listening_label'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: MyCarColors.textPrimary,
+                color: context.palette.textPrimary,
               ),
             ),
             const SizedBox(width: 12),
@@ -535,8 +536,8 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           constraints: const BoxConstraints(minHeight: 112),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: MyCarColors.backgroundLight,
-            border: Border.all(color: MyCarColors.borderLight),
+            color: context.palette.backgroundLight,
+            border: Border.all(color: context.palette.borderLight),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -547,8 +548,8 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
               fontWeight: FontWeight.w700,
               height: 1.25,
               color: transcript.isEmpty
-                  ? MyCarColors.textTertiary
-                  : MyCarColors.textPrimary,
+                  ? context.palette.textTertiary
+                  : context.palette.textPrimary,
             ),
           ),
         ),
@@ -568,10 +569,10 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           processing ? 'Procesando…' : 'Toca para terminar',
           key: const Key('voice_status_label'),
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: MyCarColors.textSecondary,
+            color: context.palette.textSecondary,
           ),
         ),
       ],
@@ -585,7 +586,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
     final isExpense = draft.type == TransactionType.expense;
     final amount = draft.amount;
     final hasAmount = amount != null && amount > 0;
-    final typeColor = isExpense ? MyCarColors.expense : MyCarColors.income;
+    final typeColor = isExpense ? context.palette.expense : context.palette.income;
     final amountText = hasAmount
         ? '${isExpense ? '−' : '+'}${CurrencyFormatter.format(amount)}'
         : r'$0';
@@ -598,20 +599,20 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
         const SizedBox(height: 14),
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.mic_none_rounded,
               size: 16,
-              color: MyCarColors.textLabel,
+              color: context.palette.textLabel,
             ),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 '“${draft.transcript}”',
                 key: const Key('voice_transcript'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontStyle: FontStyle.italic,
-                  color: MyCarColors.textSecondary,
+                  color: context.palette.textSecondary,
                 ),
               ),
             ),
@@ -637,7 +638,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
                     style: TextStyle(
                       fontSize: 44,
                       fontWeight: FontWeight.w800,
-                      color: hasAmount ? typeColor : MyCarColors.textTertiary,
+                      color: hasAmount ? typeColor : context.palette.textTertiary,
                     ),
                   ),
                   Text(
@@ -648,8 +649,8 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
                     style: TextStyle(
                       fontSize: 12,
                       color: hasAmount
-                          ? MyCarColors.textLabel
-                          : MyCarColors.expense,
+                          ? context.palette.textLabel
+                          : context.palette.expense,
                     ),
                   ),
                 ],
@@ -662,8 +663,8 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           _ReviewRow(
             key: const Key('voice_row_category'),
             icon: _categoryIcon(draft.category ?? TransactionCategory.other),
-            iconColor: MyCarColors.primary,
-            iconBackground: MyCarColors.primaryLight,
+            iconColor: context.palette.accent,
+            iconBackground: context.palette.primaryLight,
             label: 'Categoría',
             value: (draft.category ?? TransactionCategory.other).label,
             onTap: _pickCategory,
@@ -671,8 +672,8 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
         _ReviewRow(
           key: const Key('voice_row_vehicle'),
           icon: Icons.directions_car_outlined,
-          iconColor: MyCarColors.secondary,
-          iconBackground: MyCarColors.secondaryLight,
+          iconColor: context.palette.accentSecondary,
+          iconBackground: context.palette.secondaryLight,
           label: 'Vehículo',
           value: _carName(car),
           onTap: _cars.isEmpty ? null : _pickVehicle,
@@ -692,7 +693,7 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           Text(
             extra,
             key: const Key('voice_extra_details'),
-            style: const TextStyle(fontSize: 13, color: MyCarColors.textLabel),
+            style: TextStyle(fontSize: 13, color: context.palette.textLabel),
           ),
         ],
         if (_saveError != null) ...[
@@ -803,14 +804,14 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           child: Container(
             width: 72,
             height: 72,
-            decoration: const BoxDecoration(
-              color: MyCarColors.primaryLight,
+            decoration: BoxDecoration(
+              color: context.palette.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.mic_off_rounded,
               size: 34,
-              color: MyCarColors.primary,
+              color: context.palette.accent,
             ),
           ),
         ),
@@ -819,10 +820,10 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           title,
           key: const Key('voice_problem_title'),
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w800,
-            color: MyCarColors.textPrimary,
+            color: context.palette.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -830,10 +831,10 @@ class _VoiceEntrySheetState extends State<VoiceEntrySheet> {
           message,
           key: const Key('voice_problem_message'),
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             height: 1.4,
-            color: MyCarColors.textSecondary,
+            color: context.palette.textSecondary,
           ),
         ),
         const SizedBox(height: 24),
@@ -888,8 +889,8 @@ class _VehicleChip extends StatelessWidget {
       button: true,
       label: 'Vehículo: $name. Toca para cambiarlo',
       child: Material(
-        color: MyCarColors.white,
-        shape: StadiumBorder(side: BorderSide(color: MyCarColors.borderLight)),
+        color: context.palette.background,
+        shape: StadiumBorder(side: BorderSide(color: context.palette.borderLight)),
         child: InkWell(
           key: const Key('voice_vehicle_chip'),
           customBorder: const StadiumBorder(),
@@ -901,26 +902,26 @@ class _VehicleChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.directions_car_outlined,
                     size: 20,
-                    color: MyCarColors.primary,
+                    color: context.palette.accent,
                   ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       name,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                       ),
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.expand_more_rounded,
-                    color: MyCarColors.textLabel,
+                    color: context.palette.textLabel,
                   ),
                 ],
               ),
@@ -1017,15 +1018,15 @@ class _MicButtonState extends State<_MicButton>
               Container(
                 width: 156,
                 height: 156,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: MyCarColors.primaryLight,
+                  color: context.palette.primaryLight,
                 ),
               ),
             Material(
               color: widget.enabled
                   ? MyCarColors.primary
-                  : MyCarColors.textTertiary,
+                  : context.palette.textTertiary,
               shape: const CircleBorder(),
               elevation: 4,
               shadowColor: MyCarColors.primary.withValues(alpha: 0.4),
@@ -1101,10 +1102,10 @@ class _ElapsedClockState extends State<_ElapsedClock> {
     return Text(
       format(widget.controller.elapsed),
       key: const Key('voice_elapsed'),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: MyCarColors.textLabel,
+        color: context.palette.textLabel,
         fontFeatures: [FontFeature.tabularFigures()],
       ),
     );
@@ -1204,29 +1205,32 @@ class _TypeSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: MyCarColors.surfaceMuted,
+        color: context.palette.surfaceMuted,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           _option(
+            context,
             key: const Key('voice_type_income'),
             type: TransactionType.income,
             label: 'Ingreso',
-            color: MyCarColors.income,
+            color: context.palette.income,
           ),
           _option(
+            context,
             key: const Key('voice_type_expense'),
             type: TransactionType.expense,
             label: 'Gasto',
-            color: MyCarColors.expense,
+            color: context.palette.expense,
           ),
         ],
       ),
     );
   }
 
-  Widget _option({
+  Widget _option(
+    BuildContext context, {
     required Key key,
     required TransactionType type,
     required String label,
@@ -1247,7 +1251,7 @@ class _TypeSelector extends StatelessWidget {
             height: 44,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: active ? MyCarColors.white : Colors.transparent,
+              color: active ? context.palette.background : Colors.transparent,
               borderRadius: BorderRadius.circular(11),
               boxShadow: active
                   ? [
@@ -1264,7 +1268,7 @@ class _TypeSelector extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: active ? color : MyCarColors.textLabel,
+                color: active ? color : context.palette.textLabel,
               ),
             ),
           ),
@@ -1308,8 +1312,8 @@ class _ReviewRow extends StatelessWidget {
           height: 60,
           decoration: BoxDecoration(
             border: showDivider
-                ? const Border(
-                    bottom: BorderSide(color: MyCarColors.borderLight),
+                ? Border(
+                    bottom: BorderSide(color: context.palette.borderLight),
                   )
                 : null,
           ),
@@ -1332,26 +1336,26 @@ class _ReviewRow extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: MyCarColors.textLabel,
+                        color: context.palette.textLabel,
                       ),
                     ),
                     Text(
                       value,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: MyCarColors.textTertiary,
+                color: context.palette.textTertiary,
               ),
             ],
           ),
@@ -1417,8 +1421,8 @@ class _ActionButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         minimumSize: size,
         shape: shape,
-        foregroundColor: MyCarColors.textPrimary,
-        side: const BorderSide(color: MyCarColors.border),
+        foregroundColor: context.palette.textPrimary,
+        side: BorderSide(color: context.palette.border),
         textStyle: textStyle,
       ),
       child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),

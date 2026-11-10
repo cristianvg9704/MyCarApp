@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/subscription_provider.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/subscription_plans.dart';
+import '../utils/my_car_palette.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -155,7 +156,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyCarColors.background,
+      backgroundColor: context.palette.background,
       body: SafeArea(
         child: Consumer<SubscriptionProvider>(
           builder: (context, subscriptionProvider, child) {
@@ -210,7 +211,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     _isFirstTime ? '¡Bienvenido a MyCar!' : 'Elige tu Plan',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: MyCarColors.textPrimary,
+                      color: context.palette.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -220,7 +221,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         ? 'Desbloquea todas las funciones premium'
                         : 'Actualiza tu suscripción para acceder a todas las funciones',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -292,7 +293,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           Text(
                             'No hay paquetes disponibles. Para activar las suscripciones:',
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: MyCarColors.textPrimary),
+                                ?.copyWith(color: context.palette.textPrimary),
                           ),
                           const SizedBox(height: 12),
                           _buildConfigStep(
@@ -378,7 +379,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                           Text(
                                             'Para desarrollo/pruebas:',
                                             style: TextStyle(
-                                              color: MyCarColors.textPrimary,
+                                              color: context.palette.textPrimary,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -387,7 +388,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                           Text(
                                             'iOS: Crea un StoreKit Configuration File en Xcode con los productos monthly_subscription y yearly_subscription.',
                                             style: TextStyle(
-                                              color: MyCarColors.textSecondary,
+                                              color: context.palette.textSecondary,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -395,7 +396,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                           Text(
                                             'Android: Configura productos de prueba en Google Play Console o usa productos internos.',
                                             style: TextStyle(
-                                              color: MyCarColors.textSecondary,
+                                              color: context.palette.textSecondary,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -450,7 +451,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         key: const Key('subscription_downgrade_hint'),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                         ),
                       ),
                     ),
@@ -550,10 +551,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.palette.background,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? MyCarColors.primary : MyCarColors.gray300,
+            color: isSelected ? MyCarColors.primary : context.palette.border,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
@@ -623,7 +624,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 if (isSelected)
                   Icon(
                     Icons.check_circle,
-                    color: MyCarColors.primary,
+                    color: context.palette.accent,
                     size: 24,
                   ),
               ],
@@ -633,7 +634,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: MyCarColors.textPrimary,
+                color: context.palette.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -641,7 +642,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               price,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: MyCarColors.primary,
+                color: context.palette.accent,
               ),
             ),
             const SizedBox(height: 4),
@@ -649,7 +650,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               description,
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: MyCarColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: context.palette.textSecondary),
             ),
             const SizedBox(height: 16),
             ...features.map(
@@ -667,7 +668,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       child: Text(
                         feature,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                         ),
                       ),
                     ),
@@ -711,7 +712,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               text,
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: MyCarColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: context.palette.textSecondary),
             ),
           ),
         ],

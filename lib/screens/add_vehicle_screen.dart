@@ -8,6 +8,7 @@ import '../models/car.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/vehicle_image_helper.dart';
 import '../config/supabase_config.dart';
+import '../utils/my_car_palette.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   final bool inModal;
@@ -206,7 +207,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     height: 200,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.palette.background,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: _selectedImage != null
@@ -245,20 +246,20 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: MyCarColors.primaryLight,
+                                  color: context.palette.primaryLight,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.add_photo_alternate_outlined,
                                   size: 32,
-                                  color: MyCarColors.primary,
+                                  color: context.palette.accent,
                                 ),
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 'Agregar Foto',
                                 style: TextStyle(
-                                  color: MyCarColors.textSecondary,
+                                  color: context.palette.textSecondary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -273,7 +274,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.palette.background,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   padding: const EdgeInsets.all(20),
@@ -286,24 +287,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Marca *',
                           hintText: 'Ej: Toyota',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           labelStyle: TextStyle(
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           hintStyle: TextStyle(
-                            color: MyCarColors.textTertiary,
+                            color: context.palette.textTertiary,
                             fontSize: 15,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -319,7 +320,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           ),
                         ),
                         style: TextStyle(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -337,24 +338,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Modelo *',
                           hintText: 'Ej: Corolla',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           labelStyle: TextStyle(
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           hintStyle: TextStyle(
-                            color: MyCarColors.textTertiary,
+                            color: context.palette.textTertiary,
                             fontSize: 15,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -370,7 +371,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           ),
                         ),
                         style: TextStyle(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -388,24 +389,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Año *',
                           hintText: 'Ej: 2020',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           labelStyle: TextStyle(
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           hintStyle: TextStyle(
-                            color: MyCarColors.textTertiary,
+                            color: context.palette.textTertiary,
                             fontSize: 15,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -421,7 +422,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           ),
                         ),
                         style: TextStyle(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -446,24 +447,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Placa',
                           hintText: 'Ej: ABC123',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           labelStyle: TextStyle(
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           hintStyle: TextStyle(
-                            color: MyCarColors.textTertiary,
+                            color: context.palette.textTertiary,
                             fontSize: 15,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -471,7 +472,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           ),
                         ),
                         style: TextStyle(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -483,24 +484,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Color',
                           hintText: 'Ej: Rojo',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           labelStyle: TextStyle(
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           hintStyle: TextStyle(
-                            color: MyCarColors.textTertiary,
+                            color: context.palette.textTertiary,
                             fontSize: 15,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -508,7 +509,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           ),
                         ),
                         style: TextStyle(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -520,11 +521,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           decoration: BoxDecoration(
-                            color: MyCarColors.backgroundLight,
+                            color: context.palette.backgroundLight,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: _purchaseDate == null
-                                  ? MyCarColors.border
+                                  ? context.palette.border
                                   : MyCarColors.primary,
                               width: _purchaseDate == null ? 1.5 : 2,
                             ),
@@ -538,7 +539,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                                     Text(
                                       'Fecha de Compra',
                                       style: TextStyle(
-                                        color: MyCarColors.textSecondary,
+                                        color: context.palette.textSecondary,
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -550,8 +551,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                                           : '${_purchaseDate!.day}/${_purchaseDate!.month}/${_purchaseDate!.year}',
                                       style: TextStyle(
                                         color: _purchaseDate == null
-                                            ? MyCarColors.textTertiary
-                                            : MyCarColors.textPrimary,
+                                            ? context.palette.textTertiary
+                                            : context.palette.textPrimary,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -562,8 +563,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                               Icon(
                                 Icons.calendar_today_outlined,
                                 color: _purchaseDate == null
-                                    ? MyCarColors.textTertiary
-                                    : MyCarColors.primary,
+                                    ? context.palette.textTertiary
+                                    : context.palette.accent,
                                 size: 20,
                               ),
                             ],
@@ -578,24 +579,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Notas',
                           hintText: 'Información adicional...',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           labelStyle: TextStyle(
-                            color: MyCarColors.textSecondary,
+                            color: context.palette.textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           hintStyle: TextStyle(
-                            color: MyCarColors.textTertiary,
+                            color: context.palette.textTertiary,
                             fontSize: 15,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: MyCarColors.border, width: 1.5),
+                            borderSide: BorderSide(color: context.palette.border, width: 1.5),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -603,7 +604,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           ),
                         ),
                         style: TextStyle(
-                          color: MyCarColors.textPrimary,
+                          color: context.palette.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -661,7 +662,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     }
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

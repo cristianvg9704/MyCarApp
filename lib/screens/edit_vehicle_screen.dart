@@ -7,6 +7,7 @@ import '../providers/car_provider.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/vehicle_image_helper.dart';
+import '../utils/my_car_palette.dart';
 
 class EditVehicleScreen extends StatefulWidget {
   final Car car;
@@ -231,7 +232,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.palette.background,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: _selectedImage != null
@@ -296,7 +297,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.palette.background,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: const EdgeInsets.all(20),
@@ -309,31 +310,31 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         labelText: 'Marca *',
                         hintText: 'Ej: Toyota',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
                         ),
                         labelStyle: TextStyle(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                         hintStyle: TextStyle(
-                          color: MyCarColors.textTertiary,
+                          color: context.palette.textTertiary,
                           fontSize: 15,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -360,7 +361,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         ),
                       ),
                       style: TextStyle(
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -378,31 +379,31 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         labelText: 'Modelo *',
                         hintText: 'Ej: Corolla',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
                         ),
                         labelStyle: TextStyle(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                         hintStyle: TextStyle(
-                          color: MyCarColors.textTertiary,
+                          color: context.palette.textTertiary,
                           fontSize: 15,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -429,7 +430,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         ),
                       ),
                       style: TextStyle(
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -447,31 +448,31 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         labelText: 'Año *',
                         hintText: 'Ej: 2020',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
                         ),
                         labelStyle: TextStyle(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                         hintStyle: TextStyle(
-                          color: MyCarColors.textTertiary,
+                          color: context.palette.textTertiary,
                           fontSize: 15,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -498,7 +499,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         ),
                       ),
                       style: TextStyle(
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -523,31 +524,31 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         labelText: 'Placa',
                         hintText: 'Ej: ABC123',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
                         ),
                         labelStyle: TextStyle(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                         hintStyle: TextStyle(
-                          color: MyCarColors.textTertiary,
+                          color: context.palette.textTertiary,
                           fontSize: 15,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -560,7 +561,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         ),
                       ),
                       style: TextStyle(
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -572,31 +573,31 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         labelText: 'Color',
                         hintText: 'Ej: Rojo',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
                         ),
                         labelStyle: TextStyle(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                         hintStyle: TextStyle(
-                          color: MyCarColors.textTertiary,
+                          color: context.palette.textTertiary,
                           fontSize: 15,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -609,7 +610,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         ),
                       ),
                       style: TextStyle(
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -624,11 +625,11 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: MyCarColors.backgroundLight,
+                          color: context.palette.backgroundLight,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _purchaseDate == null
-                                ? MyCarColors.border
+                                ? context.palette.border
                                 : MyCarColors.primary,
                             width: _purchaseDate == null ? 1.5 : 2,
                           ),
@@ -638,8 +639,8 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                             Icon(
                               Icons.calendar_today_outlined,
                               color: _purchaseDate == null
-                                  ? MyCarColors.textSecondary
-                                  : MyCarColors.primary,
+                                  ? context.palette.textSecondary
+                                  : context.palette.accent,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -650,7 +651,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                                   Text(
                                     'Fecha de Compra',
                                     style: TextStyle(
-                                      color: MyCarColors.textSecondary,
+                                      color: context.palette.textSecondary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -662,8 +663,8 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                                         : '${_purchaseDate!.day}/${_purchaseDate!.month}/${_purchaseDate!.year}',
                                     style: TextStyle(
                                       color: _purchaseDate == null
-                                          ? MyCarColors.textTertiary
-                                          : MyCarColors.textPrimary,
+                                          ? context.palette.textTertiary
+                                          : context.palette.textPrimary,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -674,8 +675,8 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                             Icon(
                               Icons.calendar_today_outlined,
                               color: _purchaseDate == null
-                                  ? MyCarColors.textTertiary
-                                  : MyCarColors.primary,
+                                  ? context.palette.textTertiary
+                                  : context.palette.accent,
                               size: 20,
                             ),
                           ],
@@ -689,31 +690,31 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         labelText: 'Notas',
                         hintText: 'Información adicional...',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
                         ),
                         labelStyle: TextStyle(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                         hintStyle: TextStyle(
-                          color: MyCarColors.textTertiary,
+                          color: context.palette.textTertiary,
                           fontSize: 15,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -726,7 +727,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
                         ),
                       ),
                       style: TextStyle(
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -776,7 +777,7 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
     }
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

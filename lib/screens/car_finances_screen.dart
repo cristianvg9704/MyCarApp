@@ -9,6 +9,7 @@ import '../utils/my_car_colors.dart';
 import '../utils/transaction_chart_utils.dart';
 import '../utils/transaction_modal_helper.dart';
 import '../widgets/transaction_tile.dart';
+import '../utils/my_car_palette.dart';
 
 class CarFinancesScreen extends StatelessWidget {
   final String carId;
@@ -28,7 +29,7 @@ class CarFinancesScreen extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -68,12 +69,12 @@ class CarFinancesScreen extends StatelessWidget {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: MyCarColors.primaryLight,
+                  color: context.palette.primaryLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
-                  color: MyCarColors.primary,
+                  color: context.palette.accent,
                   size: 22,
                 ),
               ),
@@ -104,13 +105,13 @@ class CarFinancesScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(40),
                     decoration: BoxDecoration(
-                      color: MyCarColors.primaryLight.withValues(alpha: 0.3),
+                      color: context.palette.primaryLight.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.attach_money_outlined,
                       size: 72,
-                      color: MyCarColors.primary,
+                      color: context.palette.accent,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -118,7 +119,7 @@ class CarFinancesScreen extends StatelessWidget {
                     'No hay movimientos',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: MyCarColors.textPrimary,
+                      color: context.palette.textPrimary,
                       letterSpacing: -0.5,
                     ),
                     textAlign: TextAlign.center,
@@ -127,7 +128,7 @@ class CarFinancesScreen extends StatelessWidget {
                   Text(
                     'Registra tu primer ingreso o egreso\npara este vehículo',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,

@@ -7,6 +7,7 @@ import '../providers/subscription_provider.dart';
 import '../services/subscription_service.dart';
 import '../utils/my_car_colors.dart';
 import '../widgets/delete_account_dialog.dart';
+import '../utils/my_car_palette.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -103,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -130,7 +131,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Apariencia',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               letterSpacing: -0.3,
             ),
           ),
@@ -139,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             builder: (context, appProvider, child) {
               return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.palette.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -157,14 +158,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: MyCarColors.primaryLight,
+                          color: context.palette.primaryLight,
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
                           appProvider.themeMode == ThemeMode.dark
                               ? Icons.dark_mode
                               : Icons.light_mode,
-                          color: MyCarColors.primary,
+                          color: context.palette.accent,
                           size: 24,
                         ),
                       ),
@@ -178,7 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: MyCarColors.textPrimary,
+                                    color: context.palette.textPrimary,
                                     letterSpacing: -0.3,
                                   ),
                             ),
@@ -191,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   : 'Seguir sistema',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: MyCarColors.textSecondary,
+                                    color: context.palette.textSecondary,
                                     fontSize: 13,
                                   ),
                             ),
@@ -218,7 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'General',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               letterSpacing: -0.3,
             ),
           ),
@@ -265,7 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Suscripción',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               letterSpacing: -0.3,
             ),
           ),
@@ -293,7 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: subscriptionStatus,
                 colorScheme: colorScheme,
                 iconColor: subscriptionProvider.isPremium
-                    ? MyCarColors.primary
+                    ? context.palette.accent
                     : null,
                 onTap: () {
                   context.push('/subscription');
@@ -372,7 +373,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Cuenta',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               letterSpacing: -0.3,
             ),
           ),
@@ -458,7 +459,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -483,12 +484,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   decoration: BoxDecoration(
                     color: iconColor != null
                         ? iconColor.withOpacity(0.1)
-                        : MyCarColors.primaryLight,
+                        : context.palette.primaryLight,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     icon,
-                    color: iconColor ?? MyCarColors.primary,
+                    color: iconColor ?? context.palette.accent,
                     size: 24,
                   ),
                 ),
@@ -502,7 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: MyCarColors.textPrimary,
+                              color: context.palette.textPrimary,
                               letterSpacing: -0.3,
                             ),
                       ),
@@ -510,7 +511,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 13,
                         ),
                       ),
@@ -519,7 +520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: MyCarColors.textTertiary,
+                  color: context.palette.textTertiary,
                   size: 24,
                 ),
               ],

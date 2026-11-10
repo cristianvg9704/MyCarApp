@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 /// Confirmación para eliminar la cuenta: explica qué se borra y exige escribir
 /// [confirmationWord] para habilitar el botón.
@@ -49,11 +50,11 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               'kilometraje, viajes, mantenimientos y alertas.',
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Si tienes una suscripción activa, cancélala por separado en los '
               'ajustes de App Store o Google Play: eliminar la cuenta no '
               'detiene el cobro.',
-              style: TextStyle(color: MyCarColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: context.palette.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
             TextField(

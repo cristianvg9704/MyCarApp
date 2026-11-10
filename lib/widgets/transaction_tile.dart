@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/car_transaction.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 IconData transactionIcon(CarTransaction t) {
   if (t.isIncome) return Icons.arrow_downward_rounded;
@@ -37,9 +38,9 @@ class TransactionTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MyCarColors.border, width: 1),
+        border: Border.all(color: context.palette.border, width: 1),
       ),
       child: Row(
         children: [
@@ -60,7 +61,7 @@ class TransactionTile extends StatelessWidget {
                   transaction.description,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: MyCarColors.textPrimary,
+                    color: context.palette.textPrimary,
                     fontSize: 15,
                   ),
                 ),
@@ -68,7 +69,7 @@ class TransactionTile extends StatelessWidget {
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: MyCarColors.textSecondary,
+                    color: context.palette.textSecondary,
                     fontSize: 12,
                   ),
                 ),

@@ -9,6 +9,7 @@ import '../utils/vehicle_image_helper.dart';
 import '../widgets/home_trip_card.dart';
 import '../widgets/user_avatar.dart';
 import '../utils/vehicle_modal_helper.dart';
+import '../utils/my_car_palette.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,7 @@ class HomeScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       body: CustomScrollView(
         slivers: [
           // Header limpio y minimalista
@@ -170,7 +171,7 @@ class HomeScreen extends StatelessWidget {
                         Text(
                           carProvider.errorMessage!,
                           style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: MyCarColors.textSecondary),
+                              ?.copyWith(color: context.palette.textSecondary),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
@@ -195,7 +196,7 @@ class HomeScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(40),
                           decoration: BoxDecoration(
-                            color: MyCarColors.primaryLight.withValues(
+                            color: context.palette.primaryLight.withValues(
                               alpha: 0.3,
                             ),
                             shape: BoxShape.circle,
@@ -203,7 +204,7 @@ class HomeScreen extends StatelessWidget {
                           child: Icon(
                             Icons.directions_car_outlined,
                             size: 72,
-                            color: MyCarColors.primary,
+                            color: context.palette.accent,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -212,7 +213,7 @@ class HomeScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: MyCarColors.textPrimary,
+                                color: context.palette.textPrimary,
                                 letterSpacing: -0.5,
                               ),
                           textAlign: TextAlign.center,
@@ -222,7 +223,7 @@ class HomeScreen extends StatelessWidget {
                           'Agrega tu primer vehículo para comenzar\na gestionar tus ingresos',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
-                                color: MyCarColors.textSecondary,
+                                color: context.palette.textSecondary,
                                 height: 1.5,
                               ),
                           textAlign: TextAlign.center,
@@ -277,7 +278,7 @@ class HomeScreen extends StatelessWidget {
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: MyCarColors.textPrimary,
+                                  color: context.palette.textPrimary,
                                   letterSpacing: -0.3,
                                 ),
                           ),
@@ -287,13 +288,13 @@ class HomeScreen extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: MyCarColors.primaryLight,
+                              color: context.palette.primaryLight,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               '${carProvider.cars.length}',
                               style: TextStyle(
-                                color: MyCarColors.primary,
+                                color: context.palette.accent,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
@@ -343,7 +344,7 @@ class HomeScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -395,7 +396,7 @@ class HomeScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: MyCarColors.textPrimary,
+                              color: context.palette.textPrimary,
                               letterSpacing: -0.3,
                             ),
                       ),
@@ -410,14 +411,14 @@ class HomeScreen extends StatelessWidget {
                               Icon(
                                 Icons.calendar_today_outlined,
                                 size: 14,
-                                color: MyCarColors.textSecondary,
+                                color: context.palette.textSecondary,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'Año ${car.year}',
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
-                                      color: MyCarColors.textSecondary,
+                                      color: context.palette.textSecondary,
                                       fontSize: 13,
                                     ),
                               ),
@@ -430,14 +431,14 @@ class HomeScreen extends StatelessWidget {
                                 Icon(
                                   Icons.confirmation_number_outlined,
                                   size: 14,
-                                  color: MyCarColors.textSecondary,
+                                  color: context.palette.textSecondary,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   car.plateNumber!,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
-                                        color: MyCarColors.textSecondary,
+                                        color: context.palette.textSecondary,
                                         fontSize: 13,
                                       ),
                                 ),
@@ -451,7 +452,7 @@ class HomeScreen extends StatelessWidget {
                 // Icono de navegación más sutil
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: MyCarColors.textTertiary,
+                  color: context.palette.textTertiary,
                   size: 24,
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/my_car_palette.dart';
 
 /// Pantalla que reemplaza a la app cuando faltan claves del `.env`
 /// (se ejecutó sin `--dart-define-from-file=.env`). Sin ella la app seguiría
@@ -18,7 +19,7 @@ class ConfigErrorApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: MyCarColors.background,
+        backgroundColor: context.palette.background,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -33,23 +34,23 @@ class ConfigErrorApp extends StatelessWidget {
                     color: MyCarColors.warning,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Falta configuración',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: MyCarColors.textPrimary,
+                      color: context.palette.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'La app se ejecutó sin las claves del archivo .env. '
                     'Falta definir:',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -57,36 +58,36 @@ class ConfigErrorApp extends StatelessWidget {
                     Text(
                       name,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Courier',
                         fontWeight: FontWeight.w600,
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                       ),
                     ),
                   const SizedBox(height: 20),
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: MyCarColors.backgroundLight,
+                      color: context.palette.backgroundLight,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: MyCarColors.border),
+                      border: Border.all(color: context.palette.border),
                     ),
-                    child: const SelectableText(
+                    child: SelectableText(
                       runCommand,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Courier',
-                        color: MyCarColors.textPrimary,
+                        color: context.palette.textPrimary,
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Si no tienes .env, copia .env.example a .env y rellénalo.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                     ),
                   ),
                 ],

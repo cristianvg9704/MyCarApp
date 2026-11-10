@@ -8,6 +8,7 @@ import '../models/alert.dart';
 import '../utils/my_car_colors.dart';
 import '../services/alert_templates.dart';
 import '../config/supabase_config.dart';
+import '../utils/my_car_palette.dart';
 
 class EditAlertScreen extends StatefulWidget {
   final Alert alert;
@@ -215,7 +216,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.palette.background,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: const EdgeInsets.all(20),
@@ -226,7 +227,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                     Text(
                       'Plantilla (opcional)',
                       style: TextStyle(
-                        color: MyCarColors.textSecondary,
+                        color: context.palette.textSecondary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -237,7 +238,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                       decoration: InputDecoration(
                         labelText: 'Seleccionar plantilla',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -245,14 +246,14 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -274,14 +275,14 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                               Text(
                                 template.name,
                                 style: TextStyle(
-                                  color: MyCarColors.textPrimary,
+                                  color: context.palette.textPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Text(
                                 template.description,
                                 style: TextStyle(
-                                  color: MyCarColors.textSecondary,
+                                  color: context.palette.textSecondary,
                                   fontSize: 12,
                                 ),
                               ),
@@ -315,7 +316,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                               Text(
                                 'No hay vehículos registrados',
                                 style: TextStyle(
-                                  color: MyCarColors.textSecondary,
+                                  color: context.palette.textSecondary,
                                   fontSize: 15,
                                 ),
                               ),
@@ -328,7 +329,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                           decoration: InputDecoration(
                             labelText: 'Vehículo *',
                             filled: true,
-                            fillColor: MyCarColors.backgroundLight,
+                            fillColor: context.palette.backgroundLight,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 16,
@@ -336,14 +337,14 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: MyCarColors.border,
+                                color: context.palette.border,
                                 width: 1.5,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: MyCarColors.border,
+                                color: context.palette.border,
                                 width: 1.5,
                               ),
                             ),
@@ -375,7 +376,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                               child: Text(
                                 '${car.brand} ${car.model} (${car.year})',
                                 style: TextStyle(
-                                  color: MyCarColors.textPrimary,
+                                  color: context.palette.textPrimary,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -404,7 +405,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                       decoration: InputDecoration(
                         labelText: 'Título *',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -412,14 +413,14 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -461,7 +462,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                       decoration: InputDecoration(
                         labelText: 'Descripción (opcional)',
                         filled: true,
-                        fillColor: MyCarColors.backgroundLight,
+                        fillColor: context.palette.backgroundLight,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -469,14 +470,14 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -501,10 +502,10 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: MyCarColors.backgroundLight,
+                          color: context.palette.backgroundLight,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: MyCarColors.border,
+                            color: context.palette.border,
                             width: 1.5,
                           ),
                         ),
@@ -512,7 +513,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                           children: [
                             Icon(
                               Icons.calendar_today_outlined,
-                              color: MyCarColors.textSecondary,
+                              color: context.palette.textSecondary,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -523,7 +524,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                                   Text(
                                     'Fecha *',
                                     style: TextStyle(
-                                      color: MyCarColors.textSecondary,
+                                      color: context.palette.textSecondary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -532,7 +533,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                                   Text(
                                     DateFormat('dd/MM/yyyy').format(_selectedDate),
                                     style: TextStyle(
-                                      color: MyCarColors.textPrimary,
+                                      color: context.palette.textPrimary,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -542,7 +543,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                             ),
                             Icon(
                               Icons.chevron_right,
-                              color: MyCarColors.textTertiary,
+                              color: context.palette.textTertiary,
                               size: 20,
                             ),
                           ],
@@ -552,7 +553,9 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                     const SizedBox(height: 16),
 
                     // Toggle de recurrencia
-                    SwitchListTile(
+                    Material(
+                      type: MaterialType.transparency,
+                      child: SwitchListTile(
                       title: const Text('Alerta recurrente'),
                       subtitle: const Text('La alerta se repetirá automáticamente'),
                       value: _isRecurring,
@@ -569,6 +572,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                       activeColor: MyCarColors.primary,
                       contentPadding: EdgeInsets.zero,
                     ),
+                    ),
 
                     // Configuración de recurrencia
                     if (_isRecurring) ...[
@@ -578,7 +582,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                         decoration: InputDecoration(
                           labelText: 'Tipo de recurrencia',
                           filled: true,
-                          fillColor: MyCarColors.backgroundLight,
+                          fillColor: context.palette.backgroundLight,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 16,
@@ -614,7 +618,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
                                 ? 'Cada cuántos días'
                                 : 'Cada cuántos meses',
                             filled: true,
-                            fillColor: MyCarColors.backgroundLight,
+                            fillColor: context.palette.backgroundLight,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 16,
@@ -680,7 +684,7 @@ class _EditAlertScreenState extends State<EditAlertScreen> {
     }
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

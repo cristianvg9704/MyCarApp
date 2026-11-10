@@ -5,6 +5,7 @@ import '../utils/my_car_colors.dart';
 import '../providers/user_provider.dart';
 import '../services/profile_photo_storage.dart';
 import '../widgets/user_avatar.dart';
+import '../utils/my_car_palette.dart';
 
 class ProfileScreen extends StatefulWidget {
   /// Dónde se guarda la foto elegida. Inyectable para tests.
@@ -90,8 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: context.palette.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
@@ -108,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: context.palette.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -133,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: InputDecoration(
                   labelText: 'Nombre',
                   filled: true,
-                  fillColor: MyCarColors.backgroundLight,
+                  fillColor: context.palette.backgroundLight,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -141,14 +142,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: MyCarColors.border,
+                      color: context.palette.border,
                       width: 1.5,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: MyCarColors.border,
+                      color: context.palette.border,
                       width: 1.5,
                     ),
                   ),
@@ -205,8 +206,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: context.palette.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
@@ -223,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: context.palette.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -249,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: InputDecoration(
                   labelText: 'Correo Electrónico',
                   filled: true,
-                  fillColor: MyCarColors.backgroundLight,
+                  fillColor: context.palette.backgroundLight,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -257,14 +258,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: MyCarColors.border,
+                      color: context.palette.border,
                       width: 1.5,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: MyCarColors.border,
+                      color: context.palette.border,
                       width: 1.5,
                     ),
                   ),
@@ -318,8 +319,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: context.palette.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
@@ -336,7 +337,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: context.palette.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -362,7 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: InputDecoration(
                   labelText: 'Teléfono',
                   filled: true,
-                  fillColor: MyCarColors.backgroundLight,
+                  fillColor: context.palette.backgroundLight,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -370,14 +371,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: MyCarColors.border,
+                      color: context.palette.border,
                       width: 1.5,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: MyCarColors.border,
+                      color: context.palette.border,
                       width: 1.5,
                     ),
                   ),
@@ -428,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -452,7 +453,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 100,
                             height: 100,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: context.palette.background,
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 4),
                               boxShadow: [
@@ -587,7 +588,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -610,10 +611,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: MyCarColors.primaryLight,
+                    color: context.palette.primaryLight,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(icon, color: MyCarColors.primary, size: 24),
+                  child: Icon(icon, color: context.palette.accent, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -625,7 +626,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: MyCarColors.textPrimary,
+                              color: context.palette.textPrimary,
                               letterSpacing: -0.3,
                             ),
                       ),
@@ -633,7 +634,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: MyCarColors.textSecondary,
+                          color: context.palette.textSecondary,
                           fontSize: 13,
                         ),
                       ),
@@ -642,7 +643,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: MyCarColors.textTertiary,
+                  color: context.palette.textTertiary,
                   size: 24,
                 ),
               ],

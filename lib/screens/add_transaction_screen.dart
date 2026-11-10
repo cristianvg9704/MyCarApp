@@ -12,6 +12,7 @@ import '../utils/currency_formatter.dart';
 import '../utils/form_decoration.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/vehicle_modal_helper.dart';
+import '../utils/my_car_palette.dart';
 
 /// Formulario para registrar un ingreso o un egreso de un vehículo.
 class AddTransactionScreen extends StatefulWidget {
@@ -308,10 +309,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         if (carProvider.cars.isEmpty) {
           return Column(
             children: [
-              const Text(
+              Text(
                 'No hay vehículos registrados',
                 style: TextStyle(
-                  color: MyCarColors.textSecondary,
+                  color: context.palette.textSecondary,
                   fontSize: 15,
                 ),
               ),
@@ -339,14 +340,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
         return DropdownButtonFormField<String>(
           initialValue: _selectedCarId,
-          decoration: myCarInputDecoration(
+          decoration: myCarInputDecoration(context, 
             label: 'Vehículo *',
             radius: 20,
-            fillColor: Colors.white,
+            fillColor: context.palette.background,
           ),
-          dropdownColor: Colors.white,
+          dropdownColor: context.palette.background,
           borderRadius: BorderRadius.circular(20),
-          style: myCarInputTextStyle,
+          style: myCarInputTextStyle(context),
           items: [
             for (final car in carProvider.cars)
               DropdownMenuItem<String>(
@@ -386,25 +387,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: MyCarColors.primaryLight.withValues(alpha: 0.4),
+                color: context.palette.primaryLight.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '“$_transcript”',
-                style: const TextStyle(
-                  color: MyCarColors.textPrimary,
+                style: TextStyle(
+                  color: context.palette.textPrimary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
             ),
           )
         else if (!_isListening)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(
               'Ej: "gasté cincuenta mil en gasolina ayer"',
               textAlign: TextAlign.center,
-              style: TextStyle(color: MyCarColors.textTertiary, fontSize: 12),
+              style: TextStyle(color: context.palette.textTertiary, fontSize: 12),
             ),
           ),
       ],
@@ -455,15 +456,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: MyCarColors.backgroundLight,
+          color: context.palette.backgroundLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: MyCarColors.border, width: 1.5),
+          border: Border.all(color: context.palette.border, width: 1.5),
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.calendar_today_outlined,
-              color: MyCarColors.textSecondary,
+              color: context.palette.textSecondary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -471,10 +472,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Fecha *',
                     style: TextStyle(
-                      color: MyCarColors.textSecondary,
+                      color: context.palette.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -482,14 +483,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   const SizedBox(height: 4),
                   Text(
                     DateFormat('dd/MM/yyyy').format(_selectedDate),
-                    style: myCarInputTextStyle,
+                    style: myCarInputTextStyle(context),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              color: MyCarColors.textTertiary,
+              color: context.palette.textTertiary,
               size: 20,
             ),
           ],
@@ -509,7 +510,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.palette.background,
               borderRadius: BorderRadius.circular(16),
             ),
             padding: const EdgeInsets.all(20),
@@ -525,11 +526,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 gap,
                 TextFormField(
                   controller: _descriptionController,
-                  decoration: myCarInputDecoration(
+                  decoration: myCarInputDecoration(context, 
                     label: _isExpense ? 'Descripción' : 'Descripción *',
                     hint: _isExpense ? 'Ej: Tanqueo' : 'Ej: Servicio de taxi',
                   ),
-                  style: myCarInputTextStyle,
+                  style: myCarInputTextStyle(context),
                   validator: (value) =>
                       !_isExpense && (value == null || value.trim().isEmpty)
                       ? 'Por favor ingresa una descripción'
@@ -538,11 +539,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 gap,
                 TextFormField(
                   controller: _amountController,
-                  decoration: myCarInputDecoration(
+                  decoration: myCarInputDecoration(context, 
                     label: 'Monto *',
                     hint: 'Ej: 50000',
                   ),
-                  style: myCarInputTextStyle,
+                  style: myCarInputTextStyle(context),
                   keyboardType: decimalKeyboard,
                   validator: (value) =>
                       _requiredNumber(value, 'Por favor ingresa el monto'),
@@ -551,11 +552,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   gap,
                   TextFormField(
                     controller: _litersController,
-                    decoration: myCarInputDecoration(
+                    decoration: myCarInputDecoration(context, 
                       label: 'Litros',
                       hint: 'Ej: 10.5',
                     ),
-                    style: myCarInputTextStyle,
+                    style: myCarInputTextStyle(context),
                     keyboardType: decimalKeyboard,
                     validator: _optionalNumber,
                   ),
@@ -564,11 +565,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   gap,
                   TextFormField(
                     controller: _odometerController,
-                    decoration: myCarInputDecoration(
+                    decoration: myCarInputDecoration(context, 
                       label: 'Kilometraje',
                       hint: 'Ej: 45200',
                     ),
-                    style: myCarInputTextStyle,
+                    style: myCarInputTextStyle(context),
                     keyboardType: decimalKeyboard,
                     validator: _optionalNumber,
                   ),
@@ -578,11 +579,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 gap,
                 TextFormField(
                   controller: _notesController,
-                  decoration: myCarInputDecoration(
+                  decoration: myCarInputDecoration(context, 
                     label: 'Notas',
                     hint: 'Información adicional...',
                   ),
-                  style: myCarInputTextStyle,
+                  style: myCarInputTextStyle(context),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 24),
@@ -624,7 +625,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (widget.inModal) return _buildForm();
 
     return Scaffold(
-      backgroundColor: MyCarColors.backgroundLight,
+      backgroundColor: context.palette.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
