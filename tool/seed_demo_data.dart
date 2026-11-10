@@ -20,6 +20,7 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 
 import 'seed/demo_data_generator.dart';
+import 'seed/rows.dart';
 
 Future<void> main(List<String> args) async {
   final options = _Options.parse(args);
@@ -254,29 +255,27 @@ class _Supabase {
     String table,
     Iterable<Map<String, dynamic>> rows,
   ) async {
-    // Se omiten los null para que apliquen los DEFAULT de la base de datos.
-    final cleaned = [
-      for (final row in rows)
-        {
-          for (final e in row.entries)
-            if (e.value != null) e.key: e.value,
-        },
-    ];
-    const chunkSize = 200;
-    for (var i = 0; i < cleaned.length; i += chunkSize) {
-      final chunk = cleaned.sublist(i, min(i + chunkSize, cleaned.length));
-      final response = await _http.post(
-        Uri.parse('$url/rest/v1/$table'),
-        headers: _rest(session, prefer: 'return=minimal'),
-        body: jsonEncode(chunk),
-      );
-      if (response.statusCode >= 300) {
-        throw _SeedException(
-          'Falló el insert en $table (${response.statusCode}): '
-          '${response.body}',
+    // Sin null (aplican los DEFAULT) y agrupadas por claves: PostgREST exige
+    // que todos los objetos de un mismo insert tengan las mismas claves.
+    var total = 0;
+    for (final group in groupRowsByKeys(rows)) {
+      const chunkSize = 200;
+      for (var i = 0; i < group.length; i += chunkSize) {
+        final chunk = group.sublist(i, min(i + chunkSize, group.length));
+        final response = await _http.post(
+          Uri.parse('$url/rest/v1/$table'),
+          headers: _rest(session, prefer: 'return=minimal'),
+          body: jsonEncode(chunk),
         );
+        if (response.statusCode >= 300) {
+          throw _SeedException(
+            'Falló el insert en $table (${response.statusCode}): '
+            '${response.body}',
+          );
+        }
+        total += chunk.length;
       }
     }
-    stdout.writeln('  $table: ${cleaned.length} filas');
+    stdout.writeln('  $table: $total filas');
   }
 }
