@@ -70,7 +70,7 @@ class _Subscription extends SubscriptionProvider {
   SubscriptionTier get currentTier => tier;
 
   @override
-  bool get isPremium => tier != SubscriptionTier.free;
+  bool get isPremium => tier != SubscriptionTier.none;
 
   @override
   List<Package> get availablePackages => packages;
@@ -313,6 +313,23 @@ void main() {
       expectReadable(tester);
     });
 
+    testWidgets('suscripción sin plan (paywall)', (tester) async {
+      await pumpDark(
+        tester,
+        const SubscriptionScreen(),
+        providers: [
+          ChangeNotifierProvider<SubscriptionProvider>.value(
+            value: _Subscription(SubscriptionTier.none, [
+              _package(r'$rc_monthly', 'rc_monthly', r'$5.00'),
+              _package(r'$rc_annual', 'rc_annual', r'$50.00'),
+            ]),
+          ),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ],
+      );
+      expectReadable(tester);
+    });
+
     testWidgets('ajustes', (tester) async {
       await pumpDark(
         tester,
@@ -322,7 +339,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => UserProvider()),
           ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProvider<SubscriptionProvider>.value(
-            value: _Subscription(SubscriptionTier.free, const []),
+            value: _Subscription(SubscriptionTier.none, const []),
           ),
         ],
       );

@@ -109,4 +109,93 @@ void main() {
       expect(provider.cars.single.brand, 'Mazda');
     });
   });
+
+  group('límite de vehículos del plan', () {
+    List<Car> cars(int n) => [
+      for (var i = 0; i < n; i++)
+        Car(id: 'c$i', userId: 'u1', brand: 'Marca', model: 'M$i', year: 2020),
+    ];
+    final newCar = Car(userId: 'u1', brand: 'Nueva', model: 'X', year: 2024);
+
+    Future<CarProvider> loaded(int count, int? Function()? limit) async {
+      final provider = CarProvider(
+        fetchCars: () async => cars(count),
+        vehicleLimit: limit,
+      );
+      await provider.loadCars();
+      return provider;
+    }
+
+    test('sin límite configurado se puede agregar siempre', () async {
+      final provider = await loaded(50, null);
+
+      expect(provider.vehicleLimit, isNull);
+      expect(provider.canAddCar, isTrue);
+    });
+
+    test('plan mensual: se puede agregar hasta llegar a 15', () async {
+      expect((await loaded(0, () => 15)).canAddCar, isTrue);
+      expect((await loaded(14, () => 15)).canAddCar, isTrue);
+      expect((await loaded(15, () => 15)).canAddCar, isFalse);
+      expect((await loaded(20, () => 15)).canAddCar, isFalse);
+    });
+
+    test('plan anual (límite null): sin tope', () async {
+      final provider = await loaded(500, () => null);
+
+      expect(provider.canAddCar, isTrue);
+    });
+
+    test(
+      'addCar con el tope alcanzado lanza VehicleLimitReachedException',
+      () async {
+        final provider = await loaded(15, () => 15);
+
+        await expectLater(
+          provider.addCar(newCar),
+          throwsA(
+            isA<VehicleLimitReachedException>().having(
+              (e) => e.limit,
+              'limit',
+              15,
+            ),
+          ),
+        );
+        // No se agregó nada.
+        expect(provider.cars, hasLength(15));
+      },
+    );
+
+    test(
+      'con espacio disponible addCar sigue al guardado (no es el límite)',
+      () async {
+        final provider = await loaded(14, () => 15);
+
+        // Sin backend el guardado falla, pero no por el límite.
+        await expectLater(
+          provider.addCar(newCar),
+          throwsA(isNot(isA<VehicleLimitReachedException>())),
+        );
+      },
+    );
+
+    test(
+      'el límite se lee en cada uso: cambiar de plan lo actualiza',
+      () async {
+        var limit = 15;
+        final provider = await loaded(15, () => limit);
+        expect(provider.canAddCar, isFalse);
+
+        limit = 40; // por ejemplo, otro tope
+        expect(provider.canAddCar, isTrue);
+      },
+    );
+
+    test('el mensaje explica el tope', () {
+      expect(
+        const VehicleLimitReachedException(15).toString(),
+        contains('15 vehículos'),
+      );
+    });
+  });
 }

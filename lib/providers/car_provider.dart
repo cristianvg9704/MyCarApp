@@ -2,14 +2,33 @@ import 'package:flutter/material.dart';
 import '../models/car.dart';
 import '../services/database_helper.dart';
 
+/// El plan del usuario no permite agregar más vehículos.
+class VehicleLimitReachedException implements Exception {
+  /// Máximo de vehículos del plan.
+  final int limit;
+
+  const VehicleLimitReachedException(this.limit);
+
+  @override
+  String toString() => 'Llegaste al límite de $limit vehículos de tu plan';
+}
+
 class CarProvider extends ChangeNotifier {
   /// [fetchCars] permite sustituir el acceso a datos (por defecto Supabase a
   /// través de [DatabaseHelper]) para poder probar la carga sin backend.
-  CarProvider({Future<List<Car>> Function()? fetchCars})
-    : _fetchCars = fetchCars;
+  ///
+  /// [vehicleLimit] devuelve cuántos vehículos permite el plan actual (`null` =
+  /// ilimitados); sin él no se limita. `addCar` lo valida, así que ninguna
+  /// pantalla puede saltarse el tope.
+  CarProvider({
+    Future<List<Car>> Function()? fetchCars,
+    int? Function()? vehicleLimit,
+  }) : _fetchCars = fetchCars,
+       _vehicleLimit = vehicleLimit;
 
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final Future<List<Car>> Function()? _fetchCars;
+  final int? Function()? _vehicleLimit;
   List<Car> _cars = [];
   bool _isLoading = false;
   bool _hasLoaded = false;
@@ -43,7 +62,20 @@ class CarProvider extends ChangeNotifier {
     }
   }
 
+  /// Cuántos vehículos permite el plan actual (`null` = ilimitados).
+  int? get vehicleLimit => _vehicleLimit?.call();
+
+  /// Si el plan permite agregar un vehículo más.
+  bool get canAddCar {
+    final limit = vehicleLimit;
+    return limit == null || _cars.length < limit;
+  }
+
   Future<void> addCar(Car car) async {
+    final limit = vehicleLimit;
+    if (limit != null && _cars.length >= limit) {
+      throw VehicleLimitReachedException(limit);
+    }
     try {
       await _dbHelper.insertCar(car);
       await loadCars();

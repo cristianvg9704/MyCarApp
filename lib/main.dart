@@ -42,6 +42,7 @@ import 'config/app_env.dart';
 import 'config/supabase_config.dart';
 import 'config/app_config.dart';
 import 'utils/app_logging.dart';
+import 'utils/subscription_plans.dart';
 import 'utils/my_car_palette.dart';
 
 void main() async {
@@ -205,7 +206,12 @@ class MyCarApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()),
-        ChangeNotifierProvider(create: (_) => CarProvider()),
+        ChangeNotifierProvider(
+          create: (_) => CarProvider(
+            vehicleLimit: () =>
+                vehicleLimitFor(SubscriptionService.instance.currentTier),
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => AlertProvider()),
         ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
@@ -239,7 +245,20 @@ final GoRouter _router = GoRouter(
       final prefs = await SharedPreferences.getInstance();
       
       final isAuthenticated = authProvider.isAuthenticated;
-      
+
+      // No hay plan gratuito: sin una suscripción activa solo se ve la pantalla
+      // de planes.
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(
+        context,
+        listen: false,
+      );
+      final gate = subscriptionGateRedirect(
+        isAuthenticated: isAuthenticated,
+        hasPlan: subscriptionProvider.isPremium,
+        path: state.uri.path,
+      );
+      if (gate != null) return gate;
+
       final isOnboardingRoute = state.uri.path == '/onboarding';
       final isAuthRoute = state.uri.path == '/login' || 
                           state.uri.path == '/register' || 

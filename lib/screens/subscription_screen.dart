@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/subscription_provider.dart';
+import '../utils/account_actions.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/subscription_plans.dart';
 import '../utils/my_car_palette.dart';
@@ -18,12 +18,10 @@ class SubscriptionScreen extends StatefulWidget {
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   /// Plan que el usuario tocó. Mientras sea null se marca el plan que ya tiene.
   String? _chosenPlanId;
-  bool _isFirstTime = false;
 
   @override
   void initState() {
     super.initState();
-    _checkIfFirstTime();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final subscriptionProvider = Provider.of<SubscriptionProvider>(
         context,
@@ -32,26 +30,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       debugPrint('🔍 Inicializando SubscriptionProvider...');
       subscriptionProvider.initialize();
     });
-  }
-
-  Future<void> _checkIfFirstTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenSubscription = prefs.getBool('has_seen_subscription') ?? false;
-    setState(() {
-      _isFirstTime = !hasSeenSubscription;
-    });
-  }
-
-  Future<void> _markAsSeen() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_seen_subscription', true);
-  }
-
-  Future<void> _handleContinue() async {
-    await _markAsSeen();
-    if (mounted) {
-      context.go('/');
-    }
   }
 
   Future<void> _handlePurchase(Package package) async {
@@ -64,7 +42,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     if (mounted) {
       if (success) {
-        await _markAsSeen();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Suscripción activada exitosamente!'),
@@ -88,8 +65,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   String _actionLabel(PlanAction action, Package? selected) {
     switch (action) {
-      case PlanAction.continueFree:
-        return 'Continuar con Plan Gratuito';
       case PlanAction.subscribe:
         return 'Suscribirse Ahora';
       case PlanAction.switchPlan:
@@ -139,396 +114,385 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return package.storeProduct.priceString;
   }
 
+  /// Texto bajo el precio. El precio y la moneda salen de la tienda
+  /// (`priceString`); aquí solo se explica la renovación automática.
   String _getPackageDescription(Package package) {
-    final identifier = package.identifier.toLowerCase();
-    if (identifier.contains('monthly') ||
-        identifier.contains('mensual') ||
-        identifier.contains('rc_monthly')) {
-      return '\$5 USD al mes';
-    } else if (identifier.contains('yearly') ||
-        identifier.contains('anual') ||
-        identifier.contains('rc_annual')) {
-      return '\$50 USD al año';
+    if (isMonthlyPackage(package)) {
+      return 'Se renueva cada mes hasta que la canceles';
+    }
+    if (isYearlyPackage(package)) {
+      return 'Se renueva cada año hasta que la canceles';
     }
     return package.storeProduct.description;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.palette.background,
-      body: SafeArea(
-        child: Consumer<SubscriptionProvider>(
-          builder: (context, subscriptionProvider, child) {
-            final packages = subscriptionProvider.availablePackages;
-            final tier = subscriptionProvider.currentTier;
-            final currentId = currentPlanId(tier, packages);
-            final selectedId = selectedPlanId(
-              tier: tier,
-              packages: packages,
-              chosen: _chosenPlanId,
-            );
-            final action = actionFor(
-              tier: tier,
-              packages: packages,
-              selectedId: selectedId,
-            );
-            Package? selectedPackage;
-            for (final package in packages) {
-              if (package.identifier == selectedId) selectedPackage = package;
-            }
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!_isFirstTime)
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  const SizedBox(height: 20),
-                  // Icono o logo
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: MyCarColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(
-                      Icons.star_rounded,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Título
-                  Text(
-                    _isFirstTime ? '¡Bienvenido a MyCar!' : 'Elige tu Plan',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: context.palette.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _isFirstTime
-                        ? 'Desbloquea todas las funciones premium'
-                        : 'Actualiza tu suscripción para acceder a todas las funciones',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: context.palette.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-                  // Opción Free
-                  _buildPlanCard(
-                    context,
-                    title: 'Plan Gratuito',
-                    price: 'Gratis',
-                    description: 'Funciones básicas',
-                    features: const [
-                      'Hasta 3 vehículos',
-                      'Alertas básicas',
-                      'Soporte por email',
-                    ],
-                    isSelected: selectedId == freePlanId,
-                    isCurrent: currentId == freePlanId,
-                    isPremium: false,
-                    onTap: () {
-                      setState(() {
-                        _chosenPlanId = freePlanId;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Opciones Premium
-                  if (subscriptionProvider.isLoading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else if (subscriptionProvider.availablePackages.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: MyCarColors.warning.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: MyCarColors.warning.withOpacity(0.3),
-                          width: 1,
+    // Sin plan no se puede salir de esta pantalla (ni con "atrás" en Android).
+    final canLeave = context.watch<SubscriptionProvider>().isPremium;
+    return PopScope(
+      canPop: canLeave,
+      child: Scaffold(
+        backgroundColor: context.palette.background,
+        body: SafeArea(
+          child: Consumer<SubscriptionProvider>(
+            builder: (context, subscriptionProvider, child) {
+              final packages = subscriptionProvider.availablePackages;
+              final tier = subscriptionProvider.currentTier;
+              final currentId = currentPlanId(tier, packages);
+              final selectedId = selectedPlanId(
+                tier: tier,
+                packages: packages,
+                chosen: _chosenPlanId,
+              );
+              final action = actionFor(
+                tier: tier,
+                packages: packages,
+                selectedId: selectedId,
+              );
+              Package? selectedPackage;
+              for (final package in packages) {
+                if (package.identifier == selectedId) selectedPackage = package;
+              }
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (subscriptionProvider.isPremium)
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => context.pop(),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: MyCarColors.warning,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Configuración Pendiente',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: MyCarColors.warning,
-                                      ),
+                    const SizedBox(height: 20),
+                    // Icono o logo
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        gradient: MyCarColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.star_rounded,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // Título
+                    Text(
+                      subscriptionProvider.isPremium
+                          ? 'Tu plan'
+                          : 'Elige tu plan',
+                      key: const Key('subscription_title'),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: context.palette.textPrimary,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      subscriptionProvider.isPremium
+                          ? 'Cambia de plan o administra tu suscripción'
+                          : 'Suscríbete para usar MyCar. Cancela cuando quieras.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: context.palette.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    // Planes disponibles
+                    if (subscriptionProvider.isLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (subscriptionProvider.availablePackages.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: MyCarColors.warning.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: MyCarColors.warning.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: MyCarColors.warning,
+                                  size: 24,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No hay paquetes disponibles. Para activar las suscripciones:',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: context.palette.textPrimary),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildConfigStep(
-                            context,
-                            '1',
-                            'Ve al dashboard de RevenueCat',
-                          ),
-                          _buildConfigStep(
-                            context,
-                            '2',
-                            'Crea un Offering con identifier "default"',
-                          ),
-                          _buildConfigStep(
-                            context,
-                            '3',
-                            'Agrega productos: monthly_subscription y yearly_subscription',
-                          ),
-                          _buildConfigStep(
-                            context,
-                            '4',
-                            'Vincula el entitlement "MyCarApp Pro" a los productos',
-                          ),
-                          const SizedBox(height: 12),
-                          if (subscriptionProvider.errorMessage != null)
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: MyCarColors.error.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: MyCarColors.error.withOpacity(0.3),
-                                  width: 1,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Configuración Pendiente',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: MyCarColors.warning,
+                                        ),
+                                  ),
                                 ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline,
-                                        color: MyCarColors.error,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Error de Configuración',
-                                          style: TextStyle(
-                                            color: MyCarColors.error,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No hay paquetes disponibles. Para activar las suscripciones:',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: context.palette.textPrimary,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildConfigStep(
+                              context,
+                              '1',
+                              'Ve al dashboard de RevenueCat',
+                            ),
+                            _buildConfigStep(
+                              context,
+                              '2',
+                              'Crea un Offering con identifier "default"',
+                            ),
+                            _buildConfigStep(
+                              context,
+                              '3',
+                              'Agrega productos: monthly_subscription y yearly_subscription',
+                            ),
+                            _buildConfigStep(
+                              context,
+                              '4',
+                              'Vincula el entitlement "MyCarApp Pro" a los productos',
+                            ),
+                            const SizedBox(height: 12),
+                            if (subscriptionProvider.errorMessage != null)
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: MyCarColors.error.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: MyCarColors.error.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          color: MyCarColors.error,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Error de Configuración',
+                                            style: TextStyle(
+                                              color: MyCarColors.error,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    subscriptionProvider.errorMessage ??
-                                        'Error desconocido',
-                                    style: TextStyle(
-                                      color: MyCarColors.error,
-                                      fontSize: 12,
+                                      ],
                                     ),
-                                  ),
-                                  if (subscriptionProvider.errorMessage
-                                              ?.contains(
-                                                'CONFIGURATION_ERROR',
-                                              ) ==
-                                          true ||
-                                      subscriptionProvider.errorMessage
-                                              ?.contains(
-                                                'could not be fetched',
-                                              ) ==
-                                          true)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 12),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Para desarrollo/pruebas:',
-                                            style: TextStyle(
-                                              color: context.palette.textPrimary,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'iOS: Crea un StoreKit Configuration File en Xcode con los productos monthly_subscription y yearly_subscription.',
-                                            style: TextStyle(
-                                              color: context.palette.textSecondary,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Android: Configura productos de prueba en Google Play Console o usa productos internos.',
-                                            style: TextStyle(
-                                              color: context.palette.textSecondary,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      subscriptionProvider.errorMessage ??
+                                          'Error desconocido',
+                                      style: TextStyle(
+                                        color: MyCarColors.error,
+                                        fontSize: 12,
                                       ),
                                     ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    )
-                  else
-                    ...packages.map((package) {
-                      final isMonthly = isMonthlyPackage(package);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildPlanCard(
-                          context,
-                          title: _getPackageDisplayName(package),
-                          price: _getPackagePrice(package),
-                          description: _getPackageDescription(package),
-                          features: [
-                            'Vehículos ilimitados',
-                            'Alertas avanzadas',
-                            'Notificaciones personalizadas',
-                            'Soporte prioritario',
-                            isMonthly
-                                ? 'Renovación mensual'
-                                : 'Ahorra 17% con plan anual',
-                          ],
-                          isSelected: selectedId == package.identifier,
-                          isCurrent: currentId == package.identifier,
-                          isPremium: true,
-                          onTap: () {
-                            setState(() {
-                              _chosenPlanId = package.identifier;
-                            });
-                          },
-                        ),
-                      );
-                    }),
-                  const SizedBox(height: 32),
-                  // Botón de acción: depende del plan actual y del elegido
-                  if (action == PlanAction.manage && selectedId == freePlanId)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        'Para volver al plan gratuito, cancela tu suscripción '
-                        'desde la tienda. Conservas el acceso hasta que termine '
-                        'el periodo pagado.',
-                        key: const Key('subscription_downgrade_hint'),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: context.palette.textSecondary,
-                        ),
-                      ),
-                    ),
-                  FilledButton(
-                    key: const Key('subscription_primary_button'),
-                    onPressed: subscriptionProvider.isLoading
-                        ? null
-                        : () => switch (action) {
-                            PlanAction.continueFree => _handleContinue(),
-                            PlanAction.manage => _handleManage(
-                              subscriptionProvider,
-                            ),
-                            PlanAction.subscribe || PlanAction.switchPlan =>
-                              selectedPackage == null
-                                  ? null
-                                  : _handlePurchase(selectedPackage),
-                          },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: MyCarColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: subscriptionProvider.isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : Text(
-                            _actionLabel(action, selectedPackage),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Botón restaurar compras
-                  TextButton(
-                    onPressed: subscriptionProvider.isLoading
-                        ? null
-                        : () async {
-                            final success = await subscriptionProvider
-                                .restorePurchases();
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    success
-                                        ? 'Compras restauradas exitosamente'
-                                        : 'No se encontraron compras para restaurar',
-                                  ),
-                                  backgroundColor: success
-                                      ? MyCarColors.success
-                                      : MyCarColors.warning,
+                                    if (subscriptionProvider.errorMessage
+                                                ?.contains(
+                                                  'CONFIGURATION_ERROR',
+                                                ) ==
+                                            true ||
+                                        subscriptionProvider.errorMessage
+                                                ?.contains(
+                                                  'could not be fetched',
+                                                ) ==
+                                            true)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Para desarrollo/pruebas:',
+                                              style: TextStyle(
+                                                color:
+                                                    context.palette.textPrimary,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'iOS: Crea un StoreKit Configuration File en Xcode con los productos monthly_subscription y yearly_subscription.',
+                                              style: TextStyle(
+                                                color: context
+                                                    .palette
+                                                    .textSecondary,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Android: Configura productos de prueba en Google Play Console o usa productos internos.',
+                                              style: TextStyle(
+                                                color: context
+                                                    .palette
+                                                    .textSecondary,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                              );
-                              if (success) {
-                                await _markAsSeen();
-                                context.go('/');
+                              ),
+                          ],
+                        ),
+                      )
+                    else
+                      ...packages.map((package) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildPlanCard(
+                            context,
+                            title: _getPackageDisplayName(package),
+                            price: _getPackagePrice(package),
+                            description: _getPackageDescription(package),
+                            features: planFeatures(package),
+                            isSelected: selectedId == package.identifier,
+                            isCurrent: currentId == package.identifier,
+                            isPremium: true,
+                            onTap: () {
+                              setState(() {
+                                _chosenPlanId = package.identifier;
+                              });
+                            },
+                          ),
+                        );
+                      }),
+                    const SizedBox(height: 32),
+                    // Botón de acción: depende del plan actual y del elegido
+                    FilledButton(
+                      key: const Key('subscription_primary_button'),
+                      onPressed: subscriptionProvider.isLoading
+                          ? null
+                          : () => switch (action) {
+                              PlanAction.manage => _handleManage(
+                                subscriptionProvider,
+                              ),
+                              PlanAction.subscribe || PlanAction.switchPlan =>
+                                selectedPackage == null
+                                    ? null
+                                    : _handlePurchase(selectedPackage),
+                            },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: MyCarColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: subscriptionProvider.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              _actionLabel(action, selectedPackage),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Botón restaurar compras
+                    TextButton(
+                      onPressed: subscriptionProvider.isLoading
+                          ? null
+                          : () async {
+                              final success = await subscriptionProvider
+                                  .restorePurchases();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Compras restauradas exitosamente'
+                                          : 'No se encontraron compras para restaurar',
+                                    ),
+                                    backgroundColor: success
+                                        ? MyCarColors.success
+                                        : MyCarColors.warning,
+                                  ),
+                                );
+                                if (success) {
+                                  context.go('/');
+                                }
                               }
-                            }
-                          },
-                    child: const Text('Restaurar compras'),
-                  ),
-                ],
-              ),
-            );
-          },
+                            },
+                      child: const Text('Restaurar compras'),
+                    ),
+                    // Sin plan la pantalla es obligatoria: estas dos salidas
+                    // siguen disponibles (Apple exige poder eliminar la cuenta
+                    // desde la app).
+                    if (!subscriptionProvider.isPremium) ...[
+                      const SizedBox(height: 8),
+                      TextButton(
+                        key: const Key('subscription_sign_out'),
+                        onPressed: () => signOutAndGoToLogin(context),
+                        child: const Text('Cerrar sesión'),
+                      ),
+                      TextButton(
+                        key: const Key('subscription_delete_account'),
+                        onPressed: () => confirmAndDeleteAccount(context),
+                        style: TextButton.styleFrom(
+                          foregroundColor: MyCarColors.error,
+                        ),
+                        child: const Text('Eliminar mi cuenta'),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -648,9 +612,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             const SizedBox(height: 4),
             Text(
               description,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: context.palette.textSecondary),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.palette.textSecondary,
+              ),
             ),
             const SizedBox(height: 16),
             ...features.map(
@@ -710,9 +674,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           Expanded(
             child: Text(
               text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: context.palette.textSecondary),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.palette.textSecondary,
+              ),
             ),
           ),
         ],

@@ -4,11 +4,21 @@ import '../screens/add_vehicle_screen.dart';
 import '../screens/edit_vehicle_screen.dart';
 import '../providers/car_provider.dart';
 import '../models/car.dart';
+import '../widgets/vehicle_limit_dialog.dart';
 import 'my_car_palette.dart';
 
 class VehicleModalHelper {
-  /// Muestra un modal desde abajo para agregar un vehículo
+  /// Muestra un modal desde abajo para agregar un vehículo. Si el plan ya llegó
+  /// a su tope de vehículos, muestra el aviso con acceso a los planes y no abre
+  /// el formulario.
   static Future<bool?> showAddVehicleModal(BuildContext context) {
+    final limitCarProvider = Provider.of<CarProvider>(context, listen: false);
+    if (!limitCarProvider.canAddCar) {
+      return VehicleLimitDialog.show(
+        context,
+        limit: limitCarProvider.vehicleLimit!,
+      ).then<bool?>((_) => null);
+    }
     debugPrint('VehicleModalHelper: Mostrando modal de agregar vehículo');
     // Guardar una referencia al contexto original para usar después
     final scaffoldMessenger = ScaffoldMessenger.of(context);

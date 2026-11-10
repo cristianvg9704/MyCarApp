@@ -9,6 +9,7 @@ import '../utils/my_car_colors.dart';
 import '../utils/vehicle_image_helper.dart';
 import '../config/supabase_config.dart';
 import '../utils/my_car_palette.dart';
+import '../widgets/vehicle_limit_dialog.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   final bool inModal;
@@ -179,6 +180,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
             context.go('/');
           }
         }
+      } on VehicleLimitReachedException catch (e) {
+        if (mounted) await VehicleLimitDialog.show(context, limit: e.limit);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(

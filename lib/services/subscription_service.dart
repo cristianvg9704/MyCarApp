@@ -5,14 +5,17 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_env.dart';
 
-enum SubscriptionTier { free, monthly, yearly }
+/// Plan del usuario. MyCar **no tiene plan gratuito**: se necesita una
+/// suscripción mensual o anual. [none] es "sin suscripción activa" (nunca se
+/// compró, venció o se canceló) y bloquea el uso de la app.
+enum SubscriptionTier { none, monthly, yearly }
 
 class SubscriptionService {
   static final SubscriptionService instance = SubscriptionService._internal();
   SubscriptionService._internal();
 
   bool _initialized = false;
-  SubscriptionTier _currentTier = SubscriptionTier.free;
+  SubscriptionTier _currentTier = SubscriptionTier.none;
   bool _isLoading = false;
 
   SubscriptionTier get currentTier => _currentTier;
@@ -103,8 +106,8 @@ class SubscriptionService {
         await prefs.setString('subscription_tier', 'monthly');
       }
     } else {
-      _currentTier = SubscriptionTier.free;
-      await prefs.setString('subscription_tier', 'free');
+      _currentTier = SubscriptionTier.none;
+      await prefs.setString('subscription_tier', 'none');
     }
   }
 

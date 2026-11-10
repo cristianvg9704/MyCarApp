@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
-        await goAfterSignIn(context);
+        goAfterSignIn(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      await goAfterSignIn(context);
+      goAfterSignIn(context);
     } else if (authProvider.errorMessage != null) {
       // Sin mensaje = el usuario canceló: no se muestra nada
       ScaffoldMessenger.of(context).showSnackBar(

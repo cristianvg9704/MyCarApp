@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../providers/app_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/subscription_provider.dart';
+import '../utils/account_actions.dart';
 import '../services/subscription_service.dart';
 import '../utils/my_car_colors.dart';
-import '../widgets/delete_account_dialog.dart';
 import '../utils/my_car_palette.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -19,43 +19,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedLanguage = 'Español';
 
-  Future<void> _deleteAccount() async {
-    final confirmed = await DeleteAccountDialog.show(context);
-    if (!confirmed || !mounted) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final messenger = ScaffoldMessenger.of(context);
-    final router = GoRouter.of(context);
-
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const PopScope(
-        canPop: false,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-    );
-
-    final deleted = await authProvider.deleteAccount();
-    if (!mounted) return;
-    Navigator.of(context, rootNavigator: true).pop(); // cierra el progreso
-
-    if (deleted) {
-      router.go('/login');
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Tu cuenta fue eliminada')),
-      );
-    } else {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            authProvider.errorMessage ?? 'No se pudo eliminar la cuenta',
-          ),
-          backgroundColor: MyCarColors.error,
-        ),
-      );
-    }
-  }
+  Future<void> _deleteAccount() => confirmAndDeleteAccount(context);
 
   void _showLanguageDialog() {
     showDialog(
@@ -273,16 +237,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           Consumer<SubscriptionProvider>(
             builder: (context, subscriptionProvider, child) {
-              String subscriptionStatus = 'Plan Gratuito';
-
-              if (subscriptionProvider.isPremium) {
-                if (subscriptionProvider.currentTier ==
-                    SubscriptionTier.monthly) {
-                  subscriptionStatus = 'Plan Mensual - \$5 USD/mes';
-                } else if (subscriptionProvider.currentTier ==
-                    SubscriptionTier.yearly) {
-                  subscriptionStatus = 'Plan Anual - \$50 USD/año';
-                }
+              // No hay plan gratuito: sin suscripción la app no se puede usar,
+              // pero el estado se muestra igual por si la compra vence.
+              var subscriptionStatus = 'Sin suscripción';
+              switch (subscriptionProvider.currentTier) {
+                case SubscriptionTier.monthly:
+                  subscriptionStatus = 'Plan Mensual · hasta 15 vehículos';
+                case SubscriptionTier.yearly:
+                  subscriptionStatus = 'Plan Anual · vehículos ilimitados';
+                case SubscriptionTier.none:
+                  break;
               }
 
               return _buildSettingCard(

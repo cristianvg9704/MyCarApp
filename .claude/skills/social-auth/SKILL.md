@@ -21,8 +21,7 @@ la cuenta (Supabase crea el usuario la primera vez). La configuración externa (
      (solo llega la primera vez) en `user_metadata.name`.
    - **Google:** `GoogleSignIn.instance.initialize(clientId, serverClientId)` + `authenticate()`; usa el `idToken`.
    - Ambos terminan en `supabase.auth.signInWithIdToken(...)`.
-5. Resultado: `signedIn` → la pantalla va a `goAfterSignIn` (`lib/utils/auth_navigation.dart`: suscripción la primera vez, luego
-   home). `cancelled` → no hace nada y no muestra error. `SocialAuthException` → su mensaje en español. Otro error → mensaje genérico.
+5. Resultado: `signedIn` → la pantalla va a `goAfterSignIn` (`lib/utils/auth_navigation.dart`: va a `/home`; si no hay suscripción el router lo manda a los planes). `cancelled` → no hace nada y no muestra error. `SocialAuthException` → su mensaje en español. Otro error → mensaje genérico.
 
 ## Configuración en la app
 `lib/config/social_auth_config.dart`: `GOOGLE_WEB_CLIENT_ID` (obligatorio, el mismo que Supabase) y `GOOGLE_IOS_CLIENT_ID` (iOS),

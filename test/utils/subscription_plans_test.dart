@@ -32,10 +32,80 @@ void main() {
     });
   });
 
+  group('qué incluye cada plan', () {
+    test('el mensual tiene tope de 15 vehículos y soporte normal', () {
+      expect(planFeatures(monthly), [
+        'Hasta 15 vehículos',
+        'Alertas y recordatorios',
+        'Soporte',
+      ]);
+    });
+
+    test('el anual: vehículos ilimitados y soporte prioritario', () {
+      expect(planFeatures(yearly), [
+        'Vehículos ilimitados',
+        'Alertas y recordatorios',
+        'Soporte prioritario',
+      ]);
+    });
+
+    test('las alertas son las mismas: ninguno es "más avanzado"', () {
+      expect(
+        planFeatures(monthly).where((f) => f.contains('Alertas')),
+        planFeatures(yearly).where((f) => f.contains('Alertas')),
+      );
+      for (final p in both) {
+        expect(
+          planFeatures(p).any((f) => f.toLowerCase().contains('avanzad')),
+          isFalse,
+        );
+      }
+    });
+
+    test('solo el anual tiene soporte prioritario', () {
+      bool priority(Package p) =>
+          planFeatures(p).contains('Soporte prioritario');
+      expect(priority(yearly), isTrue);
+      expect(priority(monthly), isFalse);
+    });
+
+    test('el plan gratuito no existe', () {
+      expect(SubscriptionTier.values, [
+        SubscriptionTier.none,
+        SubscriptionTier.monthly,
+        SubscriptionTier.yearly,
+      ]);
+    });
+  });
+
+  group('límite de vehículos', () {
+    test('mensual: 15; anual: ilimitado; sin plan: ninguno', () {
+      expect(monthlyVehicleLimit, 15);
+      expect(vehicleLimitFor(SubscriptionTier.monthly), 15);
+      expect(vehicleLimitFor(SubscriptionTier.yearly), isNull);
+      expect(vehicleLimitFor(SubscriptionTier.none), 0);
+    });
+
+    test('canAddVehicle respeta el tope del plan mensual', () {
+      expect(canAddVehicle(SubscriptionTier.monthly, 0), isTrue);
+      expect(canAddVehicle(SubscriptionTier.monthly, 14), isTrue);
+      expect(canAddVehicle(SubscriptionTier.monthly, 15), isFalse);
+      expect(canAddVehicle(SubscriptionTier.monthly, 40), isFalse);
+    });
+
+    test('el plan anual no tiene tope', () {
+      expect(canAddVehicle(SubscriptionTier.yearly, 15), isTrue);
+      expect(canAddVehicle(SubscriptionTier.yearly, 5000), isTrue);
+    });
+
+    test('sin plan no se puede agregar ninguno', () {
+      expect(canAddVehicle(SubscriptionTier.none, 0), isFalse);
+    });
+  });
+
   group('currentPlanId', () {
-    test('gratuito', () {
-      expect(currentPlanId(SubscriptionTier.free, both), freePlanId);
-      expect(currentPlanId(SubscriptionTier.free, const []), freePlanId);
+    test('sin plan no hay plan actual', () {
+      expect(currentPlanId(SubscriptionTier.none, both), isNull);
     });
 
     test('mensual y anual apuntan a su paquete', () {
@@ -43,14 +113,32 @@ void main() {
       expect(currentPlanId(SubscriptionTier.yearly, both), yearly.identifier);
     });
 
-    test('premium sin ese paquete en la oferta no marca nada', () {
+    test('suscriptor sin ese paquete en la oferta no marca nada', () {
       expect(currentPlanId(SubscriptionTier.yearly, [monthly]), isNull);
       expect(currentPlanId(SubscriptionTier.monthly, const []), isNull);
     });
   });
 
   group('selectedPlanId', () {
-    test('sin elegir nada marca el plan que ya tienes, no el gratuito', () {
+    test('sin plan se marca el anual (el de más valor)', () {
+      expect(
+        selectedPlanId(tier: SubscriptionTier.none, packages: both),
+        yearly.identifier,
+      );
+    });
+
+    test('sin plan y sin anual en la oferta, el primero', () {
+      expect(
+        selectedPlanId(tier: SubscriptionTier.none, packages: [monthly]),
+        monthly.identifier,
+      );
+      expect(
+        selectedPlanId(tier: SubscriptionTier.none, packages: const []),
+        isNull,
+      );
+    });
+
+    test('un suscriptor ve marcado el plan que ya tiene', () {
       expect(
         selectedPlanId(tier: SubscriptionTier.monthly, packages: both),
         monthly.identifier,
@@ -61,14 +149,7 @@ void main() {
       );
     });
 
-    test('un usuario gratuito empieza en el plan gratuito', () {
-      expect(
-        selectedPlanId(tier: SubscriptionTier.free, packages: both),
-        freePlanId,
-      );
-    });
-
-    test('lo que el usuario toca manda sobre el plan actual', () {
+    test('lo que el usuario toca manda sobre todo lo demás', () {
       expect(
         selectedPlanId(
           tier: SubscriptionTier.monthly,
@@ -79,11 +160,18 @@ void main() {
       );
       expect(
         selectedPlanId(
-          tier: SubscriptionTier.monthly,
+          tier: SubscriptionTier.none,
           packages: both,
-          chosen: freePlanId,
+          chosen: monthly.identifier,
         ),
-        freePlanId,
+        monthly.identifier,
+      );
+    });
+
+    test('suscriptor cuyo paquete no está en la oferta: nada marcado', () {
+      expect(
+        selectedPlanId(tier: SubscriptionTier.yearly, packages: [monthly]),
+        isNull,
       );
     });
   });
@@ -92,23 +180,19 @@ void main() {
     PlanAction action(SubscriptionTier tier, String? selected) =>
         actionFor(tier: tier, packages: both, selectedId: selected);
 
-    test('usuario gratuito', () {
+    test('sin plan siempre es suscribirse', () {
       expect(
-        action(SubscriptionTier.free, freePlanId),
-        PlanAction.continueFree,
-      );
-      expect(action(SubscriptionTier.free, null), PlanAction.continueFree);
-      expect(
-        action(SubscriptionTier.free, monthly.identifier),
+        action(SubscriptionTier.none, yearly.identifier),
         PlanAction.subscribe,
       );
       expect(
-        action(SubscriptionTier.free, yearly.identifier),
+        action(SubscriptionTier.none, monthly.identifier),
         PlanAction.subscribe,
       );
+      expect(action(SubscriptionTier.none, null), PlanAction.subscribe);
     });
 
-    test('premium con su plan marcado administra la suscripción', () {
+    test('suscriptor con su plan marcado administra la suscripción', () {
       expect(
         action(SubscriptionTier.monthly, monthly.identifier),
         PlanAction.manage,
@@ -117,9 +201,10 @@ void main() {
         action(SubscriptionTier.yearly, yearly.identifier),
         PlanAction.manage,
       );
+      expect(action(SubscriptionTier.monthly, null), PlanAction.manage);
     });
 
-    test('premium que elige el otro plan lo cambia', () {
+    test('suscriptor que elige el otro plan lo cambia', () {
       expect(
         action(SubscriptionTier.monthly, yearly.identifier),
         PlanAction.switchPlan,
@@ -129,14 +214,37 @@ void main() {
         PlanAction.switchPlan,
       );
     });
+  });
 
-    test('premium que elige el gratuito va a administrar (cancelar)', () {
-      expect(action(SubscriptionTier.monthly, freePlanId), PlanAction.manage);
-      expect(action(SubscriptionTier.yearly, freePlanId), PlanAction.manage);
+  group('subscriptionGateRedirect (la app exige un plan)', () {
+    String? gate({
+      bool isAuthenticated = true,
+      bool hasPlan = false,
+      String path = '/home',
+    }) => subscriptionGateRedirect(
+      isAuthenticated: isAuthenticated,
+      hasPlan: hasPlan,
+      path: path,
+    );
+
+    test('sin plan, todo lleva a la pantalla de planes', () {
+      for (final path in ['/', '/home', '/profile', '/car-detail', '/alerts']) {
+        expect(gate(path: path), '/subscription', reason: path);
+      }
     });
 
-    test('premium sin nada marcado administra', () {
-      expect(action(SubscriptionTier.monthly, null), PlanAction.manage);
+    test('ya en la pantalla de planes no redirige (evita un bucle)', () {
+      expect(gate(path: '/subscription'), isNull);
+    });
+
+    test('con plan activo no se redirige', () {
+      expect(gate(hasPlan: true), isNull);
+      expect(gate(hasPlan: true, path: '/subscription'), isNull);
+    });
+
+    test('sin sesión no aplica (el login va primero)', () {
+      expect(gate(isAuthenticated: false), isNull);
+      expect(gate(isAuthenticated: false, path: '/login'), isNull);
     });
   });
 }

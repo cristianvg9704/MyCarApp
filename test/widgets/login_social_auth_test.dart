@@ -96,7 +96,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(social.calls, [SocialProvider.google]);
-    expect(find.text('Subscription screen'), findsOneWidget);
+    // Va al inicio; si no hay suscripción, el router lo manda a los planes.
+    expect(find.text('Home screen'), findsOneWidget);
   });
 
   testWidgets('a successful Apple sign-in leaves the login screen', (
@@ -108,7 +109,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(social.calls, [SocialProvider.apple]);
-    expect(find.text('Subscription screen'), findsOneWidget);
+    expect(find.text('Home screen'), findsOneWidget);
   });
 
   testWidgets('cancelling stays on the login screen without an error', (
