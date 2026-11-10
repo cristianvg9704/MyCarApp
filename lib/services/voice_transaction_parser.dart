@@ -25,6 +25,35 @@ class VoiceTransactionDraft {
   });
 
   bool get hasAmount => amount != null;
+
+  /// Movimiento listo para guardar. Requiere [hasAmount].
+  ///
+  /// Litros solo en combustible y kilometraje solo en combustible/mantenimiento
+  /// (igual que el formulario). Sin descripción usa el nombre de la categoría.
+  CarTransaction toTransaction({
+    required String userId,
+    required String carId,
+  }) {
+    assert(hasAmount, 'No se puede guardar un movimiento sin monto');
+    final isExpense = type == TransactionType.expense;
+    final expenseCategory = isExpense
+        ? (category ?? TransactionCategory.other)
+        : null;
+    final isFuel = expenseCategory == TransactionCategory.fuel;
+    final isMaintenance = expenseCategory == TransactionCategory.maintenance;
+    final text = description.trim();
+    return CarTransaction(
+      userId: userId,
+      carId: carId,
+      type: type,
+      description: text.isEmpty ? (expenseCategory?.label ?? type.label) : text,
+      amount: amount!,
+      date: date,
+      category: expenseCategory,
+      liters: isFuel ? liters : null,
+      odometerKm: isFuel || isMaintenance ? odometerKm : null,
+    );
+  }
 }
 
 /// Interpreta frases en español (Colombia) como "gasté cincuenta mil en

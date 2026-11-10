@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/car_transaction.dart';
 import '../screens/add_transaction_screen.dart';
 import '../providers/car_provider.dart';
+import '../widgets/voice_transaction_sheet.dart';
 
 class TransactionModalHelper {
   /// Muestra un modal desde abajo para registrar un ingreso o un egreso
@@ -10,7 +11,6 @@ class TransactionModalHelper {
     BuildContext context, {
     String? carId,
     TransactionType initialType = TransactionType.income,
-    bool startWithVoice = false,
   }) {
     // Guardar una referencia al contexto original para usar después
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -73,7 +73,6 @@ class TransactionModalHelper {
                   child: AddTransactionScreen(
                     initialCarId: carId,
                     initialType: initialType,
-                    startWithVoice: startWithVoice,
                     inModal: true,
                   ),
                 ),
@@ -82,23 +81,51 @@ class TransactionModalHelper {
           ),
         ),
       ),
-    ).then((success) {
-      // Recargar vehículos si se agregó un movimiento exitosamente
-      if (success == true) {
-        // Usar las referencias guardadas en lugar del context
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Movimiento guardado exitosamente'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        // Recargar vehículos para actualizar los totales
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          carProvider.loadCars();
-        });
-      }
-      return success;
-    });
+    ).then((success) => _afterSave(success, scaffoldMessenger, carProvider));
+  }
+
+  /// Hoja compacta para registrar un movimiento solo con la voz: muestra lo
+  /// que se va entendiendo y el movimiento interpretado, sin el formulario.
+  static Future<bool?> showVoiceTransactionSheet(
+    BuildContext context, {
+    required String carId,
+  }) {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final carProvider = Provider.of<CarProvider>(context, listen: false);
+
+    return showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(modalContext).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: VoiceTransactionSheet(carId: carId),
+      ),
+    ).then((success) => _afterSave(success, scaffoldMessenger, carProvider));
+  }
+
+  /// Avisa y recarga los vehículos si se guardó un movimiento.
+  static bool? _afterSave(
+    bool? success,
+    ScaffoldMessengerState scaffoldMessenger,
+    CarProvider carProvider,
+  ) {
+    if (success == true) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Movimiento guardado exitosamente'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      // Recargar vehículos para actualizar los totales
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        carProvider.loadCars();
+      });
+    }
+    return success;
   }
 }

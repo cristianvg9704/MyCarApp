@@ -146,10 +146,9 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   Future<void> _addByVoice() async {
     final carId = _car?.id;
     if (carId == null) return;
-    final saved = await TransactionModalHelper.showAddTransactionModal(
+    final saved = await TransactionModalHelper.showVoiceTransactionSheet(
       context,
       carId: carId,
-      startWithVoice: true,
     );
     if (saved == true && mounted) _loadTransactions();
   }

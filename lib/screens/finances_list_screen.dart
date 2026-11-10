@@ -386,10 +386,9 @@ class _FinancesListScreenState extends State<FinancesListScreen> {
                                 ),
                                 onPressed: () {
                                   if (car.id != null) {
-                                    TransactionModalHelper.showAddTransactionModal(
+                                    TransactionModalHelper.showVoiceTransactionSheet(
                                       context,
                                       carId: car.id!,
-                                      startWithVoice: true,
                                     );
                                   }
                                 },

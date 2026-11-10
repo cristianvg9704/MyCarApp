@@ -283,4 +283,56 @@ void main() {
       expect(draft.odometerKm, 52000);
     });
   });
+
+  group('VoiceTransactionDraft.toTransaction', () {
+    final now = DateTime(2026, 11, 10, 12);
+
+    VoiceTransactionDraft parse(String text) =>
+        VoiceTransactionParser.parse(text, now: now);
+
+    test('combustible conserva litros y kilometraje', () {
+      final t = parse(
+        'gasté ochenta mil en gasolina 10 litros 45200 km',
+      ).toTransaction(userId: 'u1', carId: 'c1');
+
+      expect(t.userId, 'u1');
+      expect(t.carId, 'c1');
+      expect(t.type, TransactionType.expense);
+      expect(t.category, TransactionCategory.fuel);
+      expect(t.amount, 80000);
+      expect(t.liters, 10);
+      expect(t.odometerKm, 45200);
+      expect(t.description, 'Combustible');
+    });
+
+    test('mantenimiento conserva el kilometraje pero no los litros', () {
+      final t = parse(
+        'pagué cien mil en el taller 45200 km',
+      ).toTransaction(userId: 'u1', carId: 'c1');
+
+      expect(t.category, TransactionCategory.maintenance);
+      expect(t.odometerKm, 45200);
+      expect(t.liters, isNull);
+    });
+
+    test('un ingreso no lleva categoría, litros ni kilometraje', () {
+      final t = parse(
+        'me pagaron ciento veinte mil por una carrera',
+      ).toTransaction(userId: 'u1', carId: 'c1');
+
+      expect(t.type, TransactionType.income);
+      expect(t.category, isNull);
+      expect(t.liters, isNull);
+      expect(t.odometerKm, isNull);
+      expect(t.amount, 120000);
+    });
+
+    test('usa la fecha interpretada', () {
+      final t = parse(
+        'gasté diez mil en peaje ayer',
+      ).toTransaction(userId: 'u1', carId: 'c1');
+
+      expect(t.date, DateTime(2026, 11, 9));
+    });
+  });
 }
