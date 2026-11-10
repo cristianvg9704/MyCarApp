@@ -186,16 +186,8 @@ class AlertProvider extends ChangeNotifier {
       
       // Si es recurrente, crear próxima instancia
       if (alert.isRecurring && alert.recurrenceType != null) {
-        final nextDate = alert.getNextRecurrenceDate();
-        if (nextDate != null) {
-          final nextAlert = alert.copyWith(
-            id: null, // Nuevo ID será generado por Supabase
-            alertDate: nextDate,
-            isCompleted: false,
-            completedAt: null,
-            createdAt: null,
-            updatedAt: null,
-          );
+        final nextAlert = alert.nextOccurrence();
+        if (nextAlert != null) {
           final nextAlertId = await _dbHelper.insertAlert(nextAlert);
           // Programar notificación para la próxima instancia
           try {

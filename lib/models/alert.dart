@@ -143,6 +143,32 @@ class Alert {
     }
   }
 
+  /// Siguiente ocurrencia de una alerta recurrente, lista para insertar como una
+  /// alerta **nueva**: misma configuración, fecha siguiente, pendiente y **sin
+  /// `id`** (lo genera la base de datos). Es `null` si la alerta no es
+  /// recurrente o no se puede calcular la fecha.
+  ///
+  /// No se arma con [copyWith] porque ahí `id: null` significa "conservar el id
+  /// actual" y el insert chocaba con la clave primaria de la alerta original.
+  Alert? nextOccurrence() {
+    final nextDate = getNextRecurrenceDate();
+    if (nextDate == null) return null;
+    return Alert(
+      userId: userId,
+      carId: carId,
+      title: title,
+      description: description,
+      alertDate: nextDate,
+      isRecurring: isRecurring,
+      recurrenceType: recurrenceType,
+      recurrenceValue: recurrenceValue,
+      recurrenceCount: recurrenceCount,
+      templateType: templateType,
+      notificationTime: notificationTime,
+      notifyDaysBefore: notifyDaysBefore,
+    );
+  }
+
   /// Crea una copia de la alerta con los campos actualizados
   Alert copyWith({
     String? id,

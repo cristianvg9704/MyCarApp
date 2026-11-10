@@ -334,6 +334,9 @@ class DatabaseHelper {
     // Asegurar que el alert tenga el user_id correcto
     final alertData = alert.toMap();
     alertData['user_id'] = userId;
+    // Insertar siempre crea una alerta nueva: el id lo genera la base de datos.
+    // (Enviar el de otra alerta chocaba con la clave primaria.)
+    alertData.remove('id');
     
     final response = await SupabaseConfig.client
         .from('alerts')
