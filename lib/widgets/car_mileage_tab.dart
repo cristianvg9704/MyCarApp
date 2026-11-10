@@ -11,6 +11,8 @@ import '../services/maintenance_recommendation_service.dart';
 import '../services/usage_analytics.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/my_car_colors.dart';
+import '../utils/trip_format.dart';
+import 'trip_actions.dart';
 
 class CarMileageTab extends StatefulWidget {
   final String carId;
@@ -56,104 +58,23 @@ class _CarMileageTabState extends State<CarMileageTab> {
   }
 
   Future<void> _startTrip(TripProvider tripProvider) async {
-    final success = await tripProvider.startTrip(widget.carId);
-    if (!mounted) return;
-
-    if (success) {
-      _syncDurationTimer(tripProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Viaje iniciado. Puedes minimizar la app o apagar la pantalla.'),
-          backgroundColor: MyCarColors.success,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            tripProvider.errorMessage ??
-                'Activa el GPS y concede permiso de ubicación "Siempre"',
-          ),
-          backgroundColor: MyCarColors.error,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-    }
+    final started = await TripActions.start(
+      context,
+      tripProvider,
+      widget.carId,
+    );
+    if (started && mounted) _syncDurationTimer(tripProvider);
   }
 
   Future<void> _stopTrip(
     TripProvider tripProvider,
     MileageProvider mileageProvider,
   ) async {
-    final km = tripProvider.liveDistanceKm;
-    if (km <= 0) {
-      await tripProvider.stopTrip(
-        mileageProvider: mileageProvider,
-        updateOdometer: false,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Viaje detenido (sin distancia registrada)')),
-        );
-      }
-      _syncDurationTimer(tripProvider);
-      return;
-    }
-
-    final current = mileageProvider.currentOdometerKm;
-    final newOdometer = (current ?? 0) + km;
-
-    final updateOdometer = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Finalizar viaje'),
-        content: Text(
-          current != null
-              ? 'Recorriste ${km.toStringAsFixed(1)} km.\n\n¿Actualizar odómetro de ${current.toStringAsFixed(0)} km a ${newOdometer.toStringAsFixed(0)} km?'
-              : 'Recorriste ${km.toStringAsFixed(1)} km.\n\n¿Registrar ${newOdometer.toStringAsFixed(0)} km como odómetro inicial?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Solo guardar viaje'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Actualizar odómetro'),
-          ),
-        ],
-      ),
-    );
-
-    if (!mounted) return;
-
-    final trip = await tripProvider.stopTrip(
-      mileageProvider: mileageProvider,
-      updateOdometer: updateOdometer == true,
-    );
-
-    _syncDurationTimer(tripProvider);
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          trip != null
-              ? 'Viaje guardado: ${km.toStringAsFixed(1)} km'
-              : 'Error al guardar el viaje',
-        ),
-        backgroundColor: trip != null ? MyCarColors.success : MyCarColors.error,
-      ),
-    );
+    await TripActions.stop(context, tripProvider, mileageProvider);
+    if (mounted) _syncDurationTimer(tripProvider);
   }
 
-  String _formatDuration(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return h > 0 ? '$h:$m:$s' : '$m:$s';
-  }
+  String _formatDuration(Duration d) => formatTripDuration(d);
 
   Future<void> _showAddReadingDialog(MileageProvider provider) async {
     final odometerController = TextEditingController(

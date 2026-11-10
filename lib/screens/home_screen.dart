@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import '../models/car.dart';
 import '../utils/my_car_colors.dart';
 import '../utils/vehicle_image_helper.dart';
+import '../widgets/home_trip_card.dart';
 import '../widgets/user_avatar.dart';
 import '../utils/vehicle_modal_helper.dart';
 
@@ -260,6 +261,11 @@ class HomeScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Acceso rápido para iniciar o detener un viaje GPS
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      child: HomeTripCard(),
+                    ),
                     // Header de sección más limpio
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
